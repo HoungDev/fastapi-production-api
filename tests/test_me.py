@@ -1,20 +1,22 @@
-from fastapi.testclient import TestClient
-
 from app.main import app
+from fastapi.testclient import TestClient
+from app.auth.jwt import create_access_token
 
 
 client = TestClient(app)
 
 
 def test_me():
+    token = create_access_token(
+        {"sub": "houngdev"},
+    )
+
     response = client.get(
         "/me/",
         headers={
-            "Authorization": "Bearer test-token",
+            "Authorization": f"Bearer {token}",
         },
     )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "token": "test-token",
-    }
+    assert response.json()["sub"] == "houngdev"
