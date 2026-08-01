@@ -1,11 +1,19 @@
 import jwt
+from fastapi import HTTPException, status
 
-from app.auth.jwt import ALGORITHM, SECRET_KEY
+from app.auth.jwt import SECRET_KEY, ALGORITHM
 
 
 def verify_token(token: str):
-    return jwt.decode(
-        token,
-        SECRET_KEY,
-        algorithms=[ALGORITHM],
-    )
+    try:
+        return jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM],
+        )
+
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+        )
