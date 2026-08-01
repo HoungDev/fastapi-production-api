@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
+    "bcrypt==4.3.0",
     "fastapi>=0.141.1",
     "passlib[bcrypt]>=1.7.4",
     "pydantic-settings>=2.14.2",
