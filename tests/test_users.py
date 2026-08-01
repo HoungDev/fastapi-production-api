@@ -15,4 +15,9 @@ def test_create_user():
     )
 
     assert response.status_code == 200
-    assert response.json() == {"username": "houngdev"}
+    assert response.json() == {
+    "success": True,
+    "data": {
+        "username": "houngdev",
+    },
+}

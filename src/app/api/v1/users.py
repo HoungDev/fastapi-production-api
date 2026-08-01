@@ -14,4 +14,5 @@ def create_user(
     user: UserCreate,
     db=Depends(get_db),
 ):
-    return service.create_user(user)
+    return success_response(service.create_user(user))
+from app.utils.responses import success_response
