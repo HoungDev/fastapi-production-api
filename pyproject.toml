@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.141.1",
+    "passlib[bcrypt]>=1.7.4",
     "pydantic-settings>=2.14.2",
     "sqlalchemy>=2.0.51",
     "uvicorn>=0.52.0",

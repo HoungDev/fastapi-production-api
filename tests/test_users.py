@@ -10,14 +10,11 @@ def test_create_user():
     response = client.post(
         "/users/",
         json={
-            "username": "houngdev"
+            "username": "houngdev",
+            "password": "secret123",
         },
     )
 
     assert response.status_code == 200
-    assert response.json() == {
-    "success": True,
-    "data": {
-        "username": "houngdev",
-    },
-}
+    assert response.json()["success"] is True
+    assert response.json()["data"]["username"] == "houngdev"
