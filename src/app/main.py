@@ -7,10 +7,15 @@ from app.api.v1.users import router as users_router
 from app.auth.login import router as login_router
 from app.auth.register import router as register_router
 from app.core.config import settings
+from app.core.logging import setup_logging
 from app.exceptions.handlers import register_exception_handlers
 from app.middlewares.cors import setup_cors
 
+
+setup_logging()
+
 app = FastAPI(title=settings.APP_NAME)
+
 
 setup_cors(app)
 register_exception_handlers(app)
