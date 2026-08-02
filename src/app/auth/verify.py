@@ -2,21 +2,17 @@ import jwt
 
 from fastapi import HTTPException, status
 
-from app.auth.jwt import (
-    SECRET_KEY,
-    ALGORITHM,
-    JWT_AUDIENCE,
-    JWT_ISSUER,
-)
+from app.core.config import settings
+
+
 def verify_token(token: str):
     try:
         return jwt.decode(
-    token,
-    SECRET_KEY,
-    algorithms=[ALGORITHM],
-    audience=JWT_AUDIENCE,
-    issuer=JWT_ISSUER,
-)
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+            audience="fastapi-client",
+        )
 
     except jwt.PyJWTError:
         raise HTTPException(
