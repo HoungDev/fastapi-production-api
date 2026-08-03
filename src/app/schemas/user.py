@@ -9,6 +9,7 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     id: int
     username: str
+    role: str
 
     model_config = ConfigDict(
         from_attributes=True,
