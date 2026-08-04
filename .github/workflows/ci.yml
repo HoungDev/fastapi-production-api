@@ -35,6 +35,14 @@ jobs:
           uv sync
 
 
+      - name: Run database migrations
+        env:
+          DATABASE_URL: sqlite:///test.db
+          SECRET_KEY: test-secret-key
+        run: |
+          uv run alembic upgrade head
+
+
       - name: Run tests
         env:
           DATABASE_URL: sqlite:///test.db
