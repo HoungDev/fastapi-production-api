@@ -4,6 +4,7 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.admin import router as admin_router
 from app.api.v1.health import router as health_router
 from app.api.v1.users import router as users_router
+from app.api.v1.me import router as me_router
 
 from app.auth.login import router as login_router
 from app.auth.register import router as register_router
@@ -40,6 +41,7 @@ app.include_router(users_router)
 app.include_router(login_router)
 app.include_router(register_router)
 app.include_router(auth_router)
+app.include_router(me_router)
 app.include_router(admin_router)
 
 
