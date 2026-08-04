@@ -15,6 +15,7 @@ from app.exceptions.handlers import register_exception_handlers
 
 from app.middlewares.cors import setup_cors
 from app.middlewares.security_headers import setup_security_headers
+from app.middlewares.rate_limit import setup_rate_limit
 
 
 setup_logging()
@@ -28,6 +29,8 @@ app = FastAPI(
 setup_cors(app)
 
 setup_security_headers(app)
+
+setup_rate_limit(app)
 
 register_exception_handlers(app)
 
