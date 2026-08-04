@@ -21,8 +21,7 @@ def register_exception_handlers(
         logger.exception(
             "Unhandled exception: %s %s",
             request.method,
-            request.url,
-            exc_info=exc,
+            request.url.path,
         )
 
         return JSONResponse(

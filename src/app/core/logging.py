@@ -1,11 +1,26 @@
 import logging
+import sys
 
 
-def setup_logging():
+LOG_FORMAT = (
+    "%(asctime)s | "
+    "%(levelname)s | "
+    "%(name)s | "
+    "%(message)s"
+)
+
+
+def setup_logging() -> None:
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+        format=LOG_FORMAT,
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+        ],
+        force=True,
     )
 
 
-logger = logging.getLogger("fastapi-production-api")
+logger = logging.getLogger(
+    "fastapi-production-api"
+)
