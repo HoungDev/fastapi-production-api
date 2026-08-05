@@ -1,7 +1,7 @@
 from fastapi import Depends
 
 from app.auth.decode_token import decode_token
-from app.auth.oauth2 import oauth2_scheme
+from app.auth.dependencies import oauth2_scheme
 
 
 def get_user_from_token(
