@@ -1,8 +1,17 @@
+import hashlib
 import secrets
 
 from datetime import datetime, timedelta, UTC
 
 from app.core.config import settings
+
+
+def hash_refresh_token(
+    token: str,
+) -> str:
+    return hashlib.sha256(
+        token.encode("utf-8")
+    ).hexdigest()
 
 
 def create_refresh_token() -> tuple[str, datetime]:

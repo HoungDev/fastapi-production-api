@@ -3,7 +3,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.auth.jwt import create_access_token
-from app.auth.refresh_token import create_refresh_token
+from app.auth.refresh_token import (
+    create_refresh_token,
+    hash_refresh_token,
+)
 from app.auth.security import verify_password
 from app.db.dependency import get_db
 from app.models.refresh_token import RefreshToken
@@ -49,7 +52,7 @@ def login(
 
     db_refresh_token = RefreshToken(
         user_id=user.id,
-        token=refresh_token,
+        token=hash_refresh_token(refresh_token),
         expires_at=expires_at,
     )
 
