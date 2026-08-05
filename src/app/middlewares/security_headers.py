@@ -22,4 +22,8 @@ def setup_security_headers(
             "strict-origin-when-cross-origin"
         )
 
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'"
+        )
+
         return response
