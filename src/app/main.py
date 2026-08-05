@@ -17,6 +17,7 @@ from app.exceptions.handlers import register_exception_handlers
 from app.middlewares.cors import setup_cors
 from app.middlewares.security_headers import setup_security_headers
 from app.middlewares.rate_limit import setup_rate_limit
+from app.middlewares.request_logging import setup_request_logging
 
 
 setup_logging()
@@ -49,6 +50,8 @@ setup_cors(app)
 setup_security_headers(app)
 
 setup_rate_limit(app)
+
+setup_request_logging(app)
 
 register_exception_handlers(app)
 
