@@ -8,6 +8,8 @@ class Settings(BaseSettings):
 
     DEBUG: bool = False
 
+    LOG_LEVEL: str = "INFO"
+
 
     DATABASE_URL: str
 

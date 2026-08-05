@@ -1,6 +1,8 @@
 import logging
 import sys
 
+from app.core.config import settings
+
 
 LOG_FORMAT = (
     "%(asctime)s | "
@@ -11,8 +13,14 @@ LOG_FORMAT = (
 
 
 def setup_logging() -> None:
+    log_level = getattr(
+        logging,
+        settings.LOG_LEVEL.upper(),
+        logging.INFO,
+    )
+
     logging.basicConfig(
-        level=logging.INFO,
+        level=log_level,
         format=LOG_FORMAT,
         handlers=[
             logging.StreamHandler(sys.stdout),
