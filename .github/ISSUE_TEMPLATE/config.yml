@@ -1,0 +1,10 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/HoungDev/fastapi-production-api/discussions
+    about: Ask questions, share ideas, and discuss the project with the community.
+
+  - name: 📚 Documentation
+    url: https://github.com/HoungDev/fastapi-production-api#readme
+    about: Read the documentation before opening an issue.
