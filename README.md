@@ -2,6 +2,26 @@
 
 A production-ready REST API built with **FastAPI**, **PostgreSQL**, **SQLAlchemy**, **Alembic**, **JWT Authentication**, automated testing, and GitHub Actions CI/CD.
 
+Maintained by **HoungDev**.
+
+This project provides a secure, scalable, and production-ready backend foundation for developers building FastAPI applications.
+
+---
+
+# ❤️ Support This Project
+
+FastAPI Production API is an open-source project maintained by HoungDev.
+
+If this project helps you:
+
+- ⭐ Star the repository
+- 🐛 Report bugs
+- 💡 Suggest improvements
+- 🤝 Contribute code
+- ❤️ Support open-source development
+
+Every contribution helps improve the project.
+
 ---
 
 # Features
@@ -43,7 +63,7 @@ A production-ready REST API built with **FastAPI**, **PostgreSQL**, **SQLAlchemy
 
 - Database health check
 - Global exception handling
-- Transaction rollback safety
+- Database transaction rollback safety
 - Environment-based configuration
 
 
@@ -70,19 +90,12 @@ fastapi-production-api/
 │       │   └── v1/
 │       │
 │       ├── auth/
-│       │
 │       ├── core/
-│       │
 │       ├── db/
-│       │
 │       ├── exceptions/
-│       │
 │       ├── middlewares/
-│       │
 │       ├── models/
-│       │
 │       ├── schemas/
-│       │
 │       └── main.py
 │
 ├── alembic/
@@ -90,12 +103,18 @@ fastapi-production-api/
 ├── tests/
 │
 ├── .github/
-│   └── workflows/
+│   ├── workflows/
+│   │   └── ci.yml
+│   └── ISSUE_TEMPLATE/
 │
+├── CONTRIBUTING.md
+├── CODE_OF_CONDUCT.md
+├── ROADMAP.md
+├── DEPLOYMENT.md
+├── .env.example
 ├── gunicorn.conf.py
 ├── pyproject.toml
 ├── uv.lock
-├── .env.example
 └── README.md
 ```
 
@@ -167,7 +186,7 @@ Run migrations:
 uv run alembic upgrade head
 ```
 
-Create new migration:
+Create migration:
 
 ```bash
 uv run alembic revision --autogenerate -m "migration message"
@@ -175,9 +194,9 @@ uv run alembic revision --autogenerate -m "migration message"
 
 ---
 
-# Run Development Server
+# Development Server
 
-Start API:
+Run:
 
 ```bash
 uv run uvicorn src.app.main:app --reload
@@ -189,7 +208,7 @@ Server:
 http://localhost:8000
 ```
 
-Swagger documentation:
+Swagger:
 
 ```
 http://localhost:8000/docs
@@ -203,11 +222,11 @@ http://localhost:8000/redoc
 
 ---
 
-# Run Production Server
+# Production Server
 
-Production uses Gunicorn with Uvicorn workers.
+Production deployment uses Gunicorn with Uvicorn workers.
 
-Start:
+Run:
 
 ```bash
 uv run gunicorn \
@@ -215,15 +234,15 @@ uv run gunicorn \
 src.app.main:app
 ```
 
-Production architecture:
+Architecture:
 
 ```
 Nginx
-  |
+ |
 Gunicorn
-  |
+ |
 FastAPI
-  |
+ |
 PostgreSQL
 ```
 
@@ -231,13 +250,19 @@ PostgreSQL
 
 # Testing
 
-Run all tests:
+Run:
 
 ```bash
 uv run pytest
 ```
 
-Test coverage includes:
+Current test status:
+
+```
+34 passed
+```
+
+Coverage includes:
 
 ```
 Authentication
@@ -278,15 +303,15 @@ Pipeline:
 ```
 Checkout repository
         |
-Setup Python 3.13
+Setup Python
         |
 Install uv
         |
 Install dependencies
         |
-Run database migration
+Run migrations
         |
-Run pytest
+Run tests
         |
 Security audit
 ```
@@ -351,8 +376,8 @@ Implemented security features:
 
 - Password hashing with bcrypt
 - JWT authentication
-- JWT issuer checking
-- JWT audience checking
+- JWT issuer validation
+- JWT audience validation
 - Refresh token hashing
 - Refresh token rotation
 - Refresh token revocation
@@ -363,36 +388,92 @@ Implemented security features:
 
 ---
 
-# Production Checklist
+# Open Source
+
+This project is built with the goal of helping developers learn and build secure FastAPI backend systems.
+
+Contributions are welcome.
+
+Please read:
+
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- [ROADMAP.md](ROADMAP.md)
+
+---
+
+# Maintainer
+
+Maintained by:
+
+**HoungDev**
+
+Open Source Maintainer focused on:
+
+- Python backend development
+- FastAPI architecture
+- API security
+- Production engineering
+
+---
+
+# Production Status
+
+Current release:
+
+```
+v1.0.0
+```
 
 Completed:
 
-[x] Authentication system
+✅ Authentication system
 
-[x] JWT security
+✅ JWT security
 
-[x] Refresh token rotation
+✅ Refresh token rotation
 
-[x] Database migrations
+✅ Database migrations
 
-[x] Automated testing
+✅ Automated testing
 
-[x] CI/CD pipeline
+✅ CI/CD pipeline
 
-[x] Logging middleware
+✅ Security middleware
 
-[x] Security middleware
+✅ Logging system
 
-[x] Error handling
+---
 
+# Roadmap
 
 Future improvements:
 
-- Nginx deployment
-- SSL certificate automation
+- Redis integration
+- Background task processing
 - Monitoring system
 - Metrics collection
-- Database backup automation
+- Cloud deployment examples
+- Improved developer experience
+
+See:
+
+```
+ROADMAP.md
+```
+
+---
+
+# Community
+
+Contributions and discussions are welcome.
+
+Please check:
+
+- Issues
+- Pull Requests
+- Feature Requests
+- Discussions
 
 ---
 
