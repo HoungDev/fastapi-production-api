@@ -16,12 +16,28 @@ class RateLimiter:
         self.requests: Dict[str, List[float]] = {}
 
 
+    def cleanup(self) -> None:
+        current_time = time.time()
+
+        expired_ips = [
+            ip
+            for ip, timestamps in self.requests.items()
+            if not timestamps
+            or current_time - timestamps[-1] >= self.window
+        ]
+
+        for ip in expired_ips:
+            del self.requests[ip]
+
+
     def is_allowed(
         self,
         client_ip: str,
     ) -> bool:
 
         current_time = time.time()
+
+        self.cleanup()
 
         if client_ip not in self.requests:
             self.requests[client_ip] = []
