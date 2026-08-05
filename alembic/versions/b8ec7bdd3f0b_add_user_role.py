@@ -32,12 +32,6 @@ def upgrade() -> None:
         ),
     )
 
-    op.alter_column(
-        "users",
-        "role",
-        server_default=None,
-    )
-
 
 def downgrade() -> None:
     """Downgrade schema."""
