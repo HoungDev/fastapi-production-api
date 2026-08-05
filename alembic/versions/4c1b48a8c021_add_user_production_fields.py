@@ -12,7 +12,6 @@ from alembic import op
 import sqlalchemy as sa
 
 
-# revision identifiers, used by Alembic.
 revision: str = "4c1b48a8c021"
 down_revision: Union[str, Sequence[str], None] = "b8ec7bdd3f0b"
 branch_labels: Union[str, Sequence[str], None] = None
@@ -37,7 +36,7 @@ def upgrade() -> None:
             "is_active",
             sa.Boolean(),
             nullable=False,
-            server_default="true",
+            server_default=sa.true(),
         ),
     )
 
@@ -61,28 +60,11 @@ def upgrade() -> None:
         ),
     )
 
-    op.create_unique_constraint(
+    op.create_index(
         "uq_users_email",
         "users",
         ["email"],
-    )
-
-    op.alter_column(
-        "users",
-        "is_active",
-        server_default=None,
-    )
-
-    op.alter_column(
-        "users",
-        "created_at",
-        server_default=None,
-    )
-
-    op.alter_column(
-        "users",
-        "updated_at",
-        server_default=None,
+        unique=True,
     )
 
 
