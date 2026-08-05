@@ -2,66 +2,46 @@
 
 ## Supported Versions
 
-We actively maintain the latest stable version of FastAPI Production API.
+The following versions are currently supported:
 
 | Version | Supported |
 | --- | --- |
-| v1.0.x | ✅ Yes |
-| < v1.0 | ❌ No |
+| v1.0.x | Yes |
+| Older versions | No |
 
----
+## Reporting a Vulnerability
 
-## Reporting a Security Vulnerability
+Please do not report security vulnerabilities through public GitHub issues.
 
-Security is an important part of this project.
-
-If you discover a security vulnerability, please do not open a public GitHub issue.
-
-Instead, report it privately to the maintainer.
-
-Contact:
+To report a security issue, please contact:
 
 **Email:** chukafe0401@gmail.com
 
 Please include:
 
-- A clear description of the vulnerability
-- Steps to reproduce the issue
+- Description of the vulnerability
+- Steps to reproduce
 - Potential impact
-- Any relevant logs or screenshots
-- Suggested mitigation if available
+- Logs or screenshots if available
 
----
+## Security Response
 
-## Response Process
+We will:
 
-After receiving a security report:
+1. Review the report.
+2. Investigate the issue.
+3. Provide a fix if necessary.
+4. Communicate the resolution.
 
-1. We will review the report as soon as possible.
-2. We will investigate and validate the issue.
-3. We will work on a fix if the vulnerability is confirmed.
-4. We will communicate the resolution when appropriate.
+## Security Practices
 
----
-
-## Security Scope
-
-This project focuses on secure backend development practices including:
+This project uses:
 
 - JWT authentication
 - Refresh token rotation
 - Password hashing
 - Role-based authorization
 - API security middleware
-- Database security practices
 - Secure configuration management
 
----
-
-## Responsible Disclosure
-
-We appreciate responsible security research and contributions that help improve the project.
-
-Please allow reasonable time for investigation and fixes before publicly disclosing security issues.
-
-Thank you for helping keep FastAPI Production API secure.
+Thank you for helping improve the security of this project.
