@@ -1,94 +1,35 @@
-\---
-
+---
 name: Bug report
-
-about: Report a problem to help improve the project
-
-title: "\[BUG] "
-
+about: Report a problem or unexpected behavior
+title: "[BUG] "
 labels: bug
-
 assignees: ''
+---
 
-\---
-
-
-
-\# Bug Report
-
-
-
-\## Description
-
-
+## Description
 
 Describe the issue clearly.
 
+## Steps to reproduce
 
+1.
+2.
+3.
 
-\---
-
-
-
-\## Steps to Reproduce
-
-
-
-1\.
-
-2\.
-
-3\.
-
-
-
-\---
-
-
-
-\## Expected Behavior
-
-
+## Expected behavior
 
 What should happen?
 
-
-
-\---
-
-
-
-\## Actual Behavior
-
-
+## Actual behavior
 
 What actually happens?
 
+## Environment
 
+- Operating System:
+- Python version:
+- FastAPI Production API version:
 
-\---
+## Additional context
 
-
-
-\## Environment
-
-
-
-\- OS:
-
-\- Python version:
-
-\- FastAPI version:
-
-
-
-\---
-
-
-
-\## Additional Information
-
-
-
-Add logs, screenshots, or other useful information.
-
+Add screenshots, logs, or any additional information.
