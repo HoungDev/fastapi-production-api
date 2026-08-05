@@ -25,7 +25,6 @@ def current_user_response(
     return current_user
 
 
-
 @router.get(
     "/me",
     response_model=UserResponse,
@@ -34,7 +33,6 @@ def get_me(
     current_user: User = Depends(get_current_user),
 ):
     return current_user
-
 
 
 # Compatibility route for old clients/tests
@@ -49,7 +47,6 @@ def get_me_legacy(
     return current_user
 
 
-
 @router.post(
     "/refresh",
     response_model=Token,
@@ -58,17 +55,16 @@ def refresh(
     data: RefreshTokenRequest,
     db: Session = Depends(get_db),
 ):
-    access_token = refresh_access_token(
+    access_token, new_refresh_token = refresh_access_token(
         data.refresh_token,
         db,
     )
 
     return Token(
         access_token=access_token,
-        refresh_token=data.refresh_token,
+        refresh_token=new_refresh_token,
         token_type="bearer",
     )
-
 
 
 @router.post(

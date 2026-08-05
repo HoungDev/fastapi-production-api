@@ -4,7 +4,10 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.auth.jwt import create_access_token
-from app.auth.refresh_token import hash_refresh_token
+from app.auth.refresh_token import (
+    create_refresh_token,
+    hash_refresh_token,
+)
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 
@@ -49,13 +52,34 @@ def refresh_access_token(
             detail="User not found",
         )
 
+
+    stored_token.revoked = True
+
+
+    new_refresh_token, expires_at = create_refresh_token()
+
+    new_db_refresh_token = RefreshToken(
+        user_id=user.id,
+        token=hash_refresh_token(
+            new_refresh_token
+        ),
+        expires_at=expires_at,
+    )
+
+    db.add(new_db_refresh_token)
+    db.commit()
+
+
     access_token = create_access_token(
         {
             "sub": user.username,
         }
     )
 
-    return access_token
+    return (
+        access_token,
+        new_refresh_token,
+    )
 
 
 def revoke_refresh_token(
