@@ -56,8 +56,13 @@ def login(
         expires_at=expires_at,
     )
 
-    db.add(db_refresh_token)
-    db.commit()
+    try:
+        db.add(db_refresh_token)
+        db.commit()
+
+    except Exception:
+        db.rollback()
+        raise
 
     return Token(
         access_token=access_token,

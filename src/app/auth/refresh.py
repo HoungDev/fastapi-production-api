@@ -52,10 +52,6 @@ def refresh_access_token(
             detail="User not found",
         )
 
-
-    stored_token.revoked = True
-
-
     new_refresh_token, expires_at = create_refresh_token()
 
     new_db_refresh_token = RefreshToken(
@@ -66,9 +62,15 @@ def refresh_access_token(
         expires_at=expires_at,
     )
 
-    db.add(new_db_refresh_token)
-    db.commit()
+    try:
+        stored_token.revoked = True
 
+        db.add(new_db_refresh_token)
+        db.commit()
+
+    except Exception:
+        db.rollback()
+        raise
 
     access_token = create_access_token(
         {
@@ -100,8 +102,12 @@ def revoke_refresh_token(
             detail="Invalid refresh token",
         )
 
-    stored_token.revoked = True
+    try:
+        stored_token.revoked = True
+        db.commit()
 
-    db.commit()
+    except Exception:
+        db.rollback()
+        raise
 
     return True

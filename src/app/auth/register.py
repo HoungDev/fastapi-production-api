@@ -27,8 +27,13 @@ def register(
         password=hashed_password,
     )
 
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+    try:
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+
+    except Exception:
+        db.rollback()
+        raise
 
     return db_user
