@@ -11,7 +11,8 @@ def verify_token(token: str):
             token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
-            audience="fastapi-client",
+            audience=settings.JWT_AUDIENCE,
+            issuer=settings.JWT_ISSUER,
         )
 
     except jwt.PyJWTError:
