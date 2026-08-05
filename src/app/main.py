@@ -24,6 +24,23 @@ setup_logging()
 
 app = FastAPI(
     title=settings.APP_NAME,
+    description="""
+FastAPI Production API
+
+Production-ready backend service with:
+
+- JWT Authentication
+- Refresh Token Authentication
+- Role Based Access Control
+- PostgreSQL Database
+- Alembic Database Migration
+- Automated Testing
+- GitHub Actions CI Pipeline
+""",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
 )
 
 
@@ -48,5 +65,6 @@ app.include_router(admin_router)
 @app.get("/")
 def root():
     return {
-        "message": "FastAPI Production API is running!"
+        "message": "FastAPI Production API is running!",
+        "version": "1.0.0",
     }
