@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -28,7 +28,7 @@ def refresh_access_token(
             detail="Refresh token revoked",
         )
 
-    if stored_token.expires_at < datetime.utcnow():
+    if stored_token.expires_at < datetime.now(UTC):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token expired",
@@ -51,6 +51,8 @@ def refresh_access_token(
     )
 
     return access_token
+
+
 def revoke_refresh_token(
     refresh_token: str,
     db: Session,
