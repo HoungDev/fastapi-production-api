@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, status
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from app.db.session import engine
@@ -27,9 +28,11 @@ def database_health_check():
             "database": "connected",
         }
 
-    except Exception as error:
-        return {
-            "status": "error",
-            "database": "disconnected",
-            "detail": str(error),
-        }
+    except Exception:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "error",
+                "database": "disconnected",
+            },
+        )
