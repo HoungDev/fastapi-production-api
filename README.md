@@ -1,27 +1,72 @@
 # FastAPI Production API
 
-A production-ready REST API built with **FastAPI**, **PostgreSQL**, **SQLAlchemy**, **Alembic**, **JWT Authentication**, automated testing, and GitHub Actions CI/CD.
+[![CI](https://github.com/HoungDev/fastapi-production-api/actions/workflows/ci.yml/badge.svg)](https://github.com/HoungDev/fastapi-production-api/actions)
+[![Python](https://img.shields.io/badge/Python-3.12-blue.svg)]()
+[![FastAPI](https://img.shields.io/badge/FastAPI-Production-green.svg)]()
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)]()
+
+A production-ready FastAPI backend template designed for building secure, scalable, and maintainable APIs.
+
+Built with:
+
+- FastAPI
+- PostgreSQL
+- SQLAlchemy ORM
+- Alembic migrations
+- JWT Authentication
+- Automated testing
+- Docker
+- GitHub Actions CI/CD
 
 Maintained by **HoungDev**.
 
-This project provides a secure, scalable, and production-ready backend foundation for developers building FastAPI applications.
+This project provides a production-focused backend foundation with clean architecture, security best practices, and developer-friendly workflows.
 
 ---
 
-# ❤️ Support This Project
+## 💗 Support Open Source Development
 
-FastAPI Production API is an open-source project maintained by HoungDev.
+FastAPI Production API is an open-source project maintained by **HoungDev**.
 
-If this project helps you:
+Maintaining a production-ready backend template requires continuous work including:
 
-- ⭐ Star the repository
-- 🐛 Report bugs
-- 💡 Suggest improvements
-- 🤝 Contribute code
-- ❤️ Support open-source development
+- 🔒 Security updates and dependency maintenance
+- 🧪 Improving automated tests and reliability
+- 📚 Maintaining documentation and examples
+- 🚀 Adding new features and developer improvements
 
-Every contribution helps improve the project.
+If this project helps you build better FastAPI applications, you can support the project by:
 
+- ⭐ Starring the repository
+- 🐛 Reporting issues
+- 💡 Suggesting improvements
+- 🤝 Contributing code
+- 💗 Becoming a GitHub Sponsor
+
+Every contribution helps keep this project actively maintained and improved.
+
+Thank you for supporting open-source software.
+
+## 🛠️ Tech Stack
+
+### Backend
+- ⚡ **FastAPI** - Modern Python web framework for building APIs
+- 🐘 **PostgreSQL** - Reliable relational database
+- 🔗 **SQLAlchemy ORM** - Database abstraction layer
+- 🗃️ **Alembic** - Database migration management
+- 🔐 **JWT Authentication** - Secure authentication system
+
+### Development & Quality
+- 🐍 **Python 3.12**
+- 🧪 **Pytest** - Automated testing
+- 🐳 **Docker** - Containerized development and deployment
+- ⚙️ **GitHub Actions** - CI/CD automation
+
+### Production
+- 🚀 Production-ready configuration
+- 🔒 Security-focused architecture
+- 📦 Environment-based configuration
+- 📖 Developer-friendly documentation
 ---
 
 # Features
@@ -79,45 +124,36 @@ Every contribution helps improve the project.
 
 ---
 
-# Project Structure
+## Project Structure
 
-```
+```text
 fastapi-production-api/
-
-├── src/
-│   └── app/
-│       ├── api/
-│       │   └── v1/
-│       │
-│       ├── auth/
-│       ├── core/
-│       ├── db/
-│       ├── exceptions/
-│       ├── middlewares/
-│       ├── models/
-│       ├── schemas/
-│       └── main.py
 │
-├── alembic/
+├── .github/                    # GitHub workflows and repository configuration
 │
-├── tests/
+├── src/                        # Application source code
 │
-├── .github/
-│   ├── workflows/
-│   │   └── ci.yml
-│   └── ISSUE_TEMPLATE/
+├── tests/                      # Automated test suite
 │
-├── CONTRIBUTING.md
-├── CODE_OF_CONDUCT.md
+├── alembic/                    # Database migration scripts
+│
+├── docker-compose.yml          # Container configuration
+├── gunicorn.conf.py            # Production server configuration
+├── alembic.ini                 # Alembic configuration
+│
+├── pyproject.toml              # Project dependencies and metadata
+├── uv.lock                     # Locked dependency versions
+│
+├── .env.example                # Environment template
+│
+├── README.md
+├── CHANGELOG.md
 ├── ROADMAP.md
 ├── DEPLOYMENT.md
-├── .env.example
-├── gunicorn.conf.py
-├── pyproject.toml
-├── uv.lock
-└── README.md
-```
-
+├── SECURITY.md
+├── CONTRIBUTING.md
+├── CODE_OF_CONDUCT.md
+└── LICENSE
 ---
 
 # Requirements
