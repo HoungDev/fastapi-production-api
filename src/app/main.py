@@ -1,24 +1,20 @@
 from fastapi import FastAPI
 
-from app.api.v1.auth import router as auth_router
 from app.api.v1.admin import router as admin_router
+from app.api.v1.auth import router as auth_router
 from app.api.v1.health import router as health_router
-from app.api.v1.users import router as users_router
 from app.api.v1.me import router as me_router
-
+from app.api.v1.users import router as users_router
 from app.auth.login import router as login_router
 from app.auth.register import router as register_router
-
 from app.core.config import settings
 from app.core.logging import setup_logging
-
 from app.exceptions.handlers import register_exception_handlers
-
 from app.middlewares.cors import setup_cors
-from app.middlewares.security_headers import setup_security_headers
 from app.middlewares.rate_limit import setup_rate_limit
 from app.middlewares.request_logging import setup_request_logging
-
+from app.middlewares.security_headers import setup_security_headers
+from fastapi_production_api import __version__
 
 setup_logging()
 
@@ -28,7 +24,7 @@ app = FastAPI(
     description="""
 FastAPI Production API
 
-Production-ready backend service with:
+Security-focused backend foundation with:
 
 - JWT Authentication
 - Refresh Token Authentication
@@ -38,7 +34,7 @@ Production-ready backend service with:
 - Automated Testing
 - GitHub Actions CI Pipeline
 """,
-    version="1.0.0",
+    version=__version__,
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
@@ -69,5 +65,5 @@ app.include_router(admin_router)
 def root():
     return {
         "message": "FastAPI Production API is running!",
-        "version": "1.0.0",
+        "version": __version__,
     }

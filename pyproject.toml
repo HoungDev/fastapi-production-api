@@ -1,18 +1,36 @@
 [project]
 name = "fastapi-production-api"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.0.1"
+description = "A security-focused FastAPI backend foundation for production services."
 readme = "README.md"
 authors = [
     { name = "Nana Dev", email = "chukafe0401@gmail.com" }
 ]
 requires-python = ">=3.13"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = [
+    "api",
+    "backend",
+    "fastapi",
+    "jwt",
+    "postgresql",
+    "python",
+    "security",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: FastAPI",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
 dependencies = [
     "alembic>=1.18.5",
     "bcrypt==4.3.0",
     "fastapi>=0.141.1",
     "gunicorn>=26.0.0",
-    "passlib[bcrypt]>=1.7.4",
     "psycopg[binary]>=3.3.4",
     "pydantic-settings>=2.14.2",
     "pyjwt>=2.13.0",
@@ -20,7 +38,14 @@ dependencies = [
     "python-multipart>=0.0.32",
     "sqlalchemy>=2.0.51",
     "uvicorn>=0.52.0",
+    "uvicorn-worker>=0.4.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/HoungDev/fastapi-production-api"
+Repository = "https://github.com/HoungDev/fastapi-production-api"
+Issues = "https://github.com/HoungDev/fastapi-production-api/issues"
+Changelog = "https://github.com/HoungDev/fastapi-production-api/blob/main/CHANGELOG.md"
 
 [project.scripts]
 fastapi-production-api = "fastapi_production_api:main"
@@ -29,8 +54,27 @@ fastapi-production-api = "fastapi_production_api:main"
 requires = ["uv_build>=0.12.0,<0.13.0"]
 build-backend = "uv_build"
 
+[tool.uv.build-backend]
+module-name = ["app", "fastapi_production_api"]
+
 [dependency-groups]
 dev = [
-    "httpx>=0.28.1",
+    "httpx2>=2.7.0",
+    "pip-audit>=2.9.0",
     "pytest>=9.1.1",
+    "ruff>=0.12.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"alembic/env.py" = ["F401"]
