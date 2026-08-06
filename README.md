@@ -154,7 +154,6 @@ fastapi-production-api/
 ├── CONTRIBUTING.md
 ├── CODE_OF_CONDUCT.md
 └── LICENSE
----
 
 # Requirements
 
