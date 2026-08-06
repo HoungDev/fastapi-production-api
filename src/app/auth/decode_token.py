@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 
-from app.auth.verify import verify_token
 from app.auth.token_payload import TokenPayload
+from app.auth.verify import verify_token
 
 
 def decode_token(

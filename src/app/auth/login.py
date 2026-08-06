@@ -13,7 +13,6 @@ from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas import Token
 
-
 router = APIRouter(
     prefix="/login",
     tags=["Authentication"],
@@ -25,9 +24,7 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
-    user = db.query(User).filter(
-        User.username == form_data.username
-    ).first()
+    user = db.query(User).filter(User.username == form_data.username).first()
 
     if not user:
         raise HTTPException(
@@ -44,9 +41,7 @@ def login(
             detail="Invalid username or password",
         )
 
-    access_token = create_access_token(
-        {"sub": user.username}
-    )
+    access_token = create_access_token({"sub": user.username})
 
     refresh_token, expires_at = create_refresh_token()
 

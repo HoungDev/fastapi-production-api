@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from app.dependencies.database import get_db
 from app.schemas import UserCreate
 from app.services.user_service import UserService
+from app.utils.responses import success_response
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -15,4 +16,3 @@ def create_user(
     db=Depends(get_db),
 ):
     return success_response(service.create_user(user))
-from app.utils.responses import success_response

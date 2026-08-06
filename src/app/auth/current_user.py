@@ -19,11 +19,7 @@ def get_current_user(
             detail="Invalid token",
         )
 
-    user = (
-        db.query(User)
-        .filter(User.username == payload.sub)
-        .first()
-    )
+    user = db.query(User).filter(User.username == payload.sub).first()
 
     if not user:
         raise HTTPException(

@@ -3,13 +3,7 @@ import sys
 
 from app.core.config import settings
 
-
-LOG_FORMAT = (
-    "%(asctime)s | "
-    "%(levelname)s | "
-    "%(name)s | "
-    "%(message)s"
-)
+LOG_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 
 
 def setup_logging() -> None:
@@ -29,6 +23,4 @@ def setup_logging() -> None:
     )
 
 
-logger = logging.getLogger(
-    "fastapi-production-api"
-)
+logger = logging.getLogger("fastapi-production-api")

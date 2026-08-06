@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import jwt
 
-from app.auth.jwt import SECRET_KEY, ALGORITHM
+from app.auth.jwt import ALGORITHM, SECRET_KEY
 from app.auth.verify import verify_token
 
 

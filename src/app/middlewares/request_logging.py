@@ -1,12 +1,9 @@
-import time
 import logging
+import time
 
 from fastapi import FastAPI, Request
 
-
-logger = logging.getLogger(
-    "fastapi-production-api.request"
-)
+logger = logging.getLogger("fastapi-production-api.request")
 
 
 def setup_request_logging(
@@ -21,14 +18,9 @@ def setup_request_logging(
 
         start_time = time.perf_counter()
 
-        response = await call_next(
-            request
-        )
+        response = await call_next(request)
 
-        process_time = (
-            time.perf_counter()
-            - start_time
-        ) * 1000
+        process_time = (time.perf_counter() - start_time) * 1000
 
         logger.info(
             "%s %s %s %.2fms",

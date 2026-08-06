@@ -15,20 +15,17 @@ class RateLimiter:
         self.window = window
         self.requests: Dict[str, List[float]] = {}
 
-
     def cleanup(self) -> None:
         current_time = time.time()
 
         expired_ips = [
             ip
             for ip, timestamps in self.requests.items()
-            if not timestamps
-            or current_time - timestamps[-1] >= self.window
+            if not timestamps or current_time - timestamps[-1] >= self.window
         ]
 
         for ip in expired_ips:
             del self.requests[ip]
-
 
     def is_allowed(
         self,
@@ -42,31 +39,24 @@ class RateLimiter:
         if client_ip not in self.requests:
             self.requests[client_ip] = []
 
-
         self.requests[client_ip] = [
             timestamp
             for timestamp in self.requests[client_ip]
             if current_time - timestamp < self.window
         ]
 
-
         if len(self.requests[client_ip]) >= self.limit:
             return False
 
-
-        self.requests[client_ip].append(
-            current_time
-        )
+        self.requests[client_ip].append(current_time)
 
         return True
-
 
 
 rate_limiter = RateLimiter(
     limit=100,
     window=60,
 )
-
 
 
 def setup_rate_limit(
@@ -79,16 +69,9 @@ def setup_rate_limit(
         call_next,
     ):
 
-        client_ip = (
-            request.client.host
-            if request.client
-            else "unknown"
-        )
+        client_ip = request.client.host if request.client else "unknown"
 
-
-        if not rate_limiter.is_allowed(
-            client_ip
-        ):
+        if not rate_limiter.is_allowed(client_ip):
             return JSONResponse(
                 status_code=429,
                 content={
@@ -96,9 +79,6 @@ def setup_rate_limit(
                 },
             )
 
-
-        response = await call_next(
-            request
-        )
+        response = await call_next(request)
 
         return response
