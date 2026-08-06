@@ -1,102 +1,39 @@
-\# Code of Conduct
+# Code of Conduct
 
+## Our commitment
 
+We are committed to making participation in FastAPI Production API a
+welcoming, harassment-free, and respectful experience for everyone, regardless
+of background, identity, experience level, or perspective.
 
-\## Our Commitment
+## Expected behavior
 
+Community members are expected to:
 
+- communicate with respect and empathy;
+- provide specific, constructive technical feedback;
+- accept different viewpoints and experience levels;
+- focus discussion on improving the project;
+- respect privacy and keep sensitive information out of public threads;
+- help create a safe environment for first-time contributors.
 
-We are committed to making participation in FastAPI Production API a welcoming and respectful experience for everyone.
+## Unacceptable behavior
 
+Unacceptable behavior includes harassment, discrimination, personal attacks,
+trolling, threats, sexualized conduct, deliberate disruption, or publishing
+someone else's private information without permission.
 
+## Scope
 
-We welcome contributions from people of all backgrounds and experience levels.
+This Code of Conduct applies in repository issues, pull requests, discussions,
+and other public or private spaces where a person is representing the project.
 
+## Enforcement
 
+Maintainers may edit or remove comments, commits, issues, discussions, or pull
+requests that violate this Code of Conduct. Repeated or serious violations may
+result in a temporary or permanent ban from project spaces.
 
-\---
-
-
-
-\## Expected Behavior
-
-
-
-Contributors are expected to:
-
-
-
-\- Be respectful and professional
-
-\- Provide constructive feedback
-
-\- Accept different opinions
-
-\- Focus on improving the project
-
-\- Help other contributors learn
-
-
-
-\---
-
-
-
-\## Unacceptable Behavior
-
-
-
-The following behaviors are not acceptable:
-
-
-
-\- Harassment
-
-\- Discrimination
-
-\- Personal attacks
-
-\- Trolling
-
-\- Publishing private information
-
-\- Any behavior that creates an unsafe environment
-
-
-
-\---
-
-
-
-\## Maintainer Responsibility
-
-
-
-Project maintainers are responsible for:
-
-
-
-\- Reviewing contributions fairly
-
-\- Maintaining a respectful environment
-
-\- Addressing reported issues
-
-
-
-\---
-
-
-
-\## Reporting Issues
-
-
-
-If you experience unacceptable behavior, please contact the project maintainer privately.
-
-
-
-Thank you for helping make this project better.
-
-
-
+Report conduct concerns privately to `chukafe0401@gmail.com`. Include relevant
+links and context, but do not send unnecessary personal or sensitive data.
+Reports will be reviewed as privately and promptly as practical.
