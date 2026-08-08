@@ -12,7 +12,6 @@ from app.schemas.refresh_token import RefreshTokenRequest
 from app.schemas.token import Token
 from app.schemas.user import UserResponse
 
-
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"],
@@ -79,6 +78,4 @@ def logout(
         db,
     )
 
-    return {
-        "message": "Logged out successfully"
-    }
+    return {"message": "Logged out successfully"}

@@ -1,13 +1,10 @@
 import logging
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-
-logger = logging.getLogger(
-    "fastapi-production-api"
-)
+logger = logging.getLogger("fastapi-production-api")
 
 
 def register_exception_handlers(
@@ -26,7 +23,6 @@ def register_exception_handlers(
             },
         )
 
-
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(
         request: Request,
@@ -44,7 +40,6 @@ def register_exception_handlers(
                 "detail": "Validation error",
             },
         )
-
 
     @app.exception_handler(Exception)
     async def global_exception_handler(

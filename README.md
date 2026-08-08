@@ -1,517 +1,223 @@
 # FastAPI Production API
 
-[![CI](https://github.com/HoungDev/fastapi-production-api/actions/workflows/ci.yml/badge.svg)](https://github.com/HoungDev/fastapi-production-api/actions)
-[![Python](https://img.shields.io/badge/Python-3.12-blue.svg)]()
-[![FastAPI](https://img.shields.io/badge/FastAPI-Production-green.svg)]()
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)]()
+[![CI](https://github.com/HoungDev/fastapi-production-api/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/HoungDev/fastapi-production-api/actions/workflows/ci.yml)
+[![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.141+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/HoungDev/fastapi-production-api)](https://github.com/HoungDev/fastapi-production-api/releases)
 
-A production-ready FastAPI backend template designed for building secure, scalable, and maintainable APIs.
+Ship a security-focused FastAPI backend without rebuilding authentication,
+database migrations, testing, and CI from scratch.
 
-Built with:
+FastAPI Production API is an open-source foundation for developers who want a
+clear starting point for maintainable API services. It includes PostgreSQL,
+SQLAlchemy, Alembic, access and refresh tokens, role-based authorization,
+security middleware, automated tests, and a release-ready GitHub workflow.
 
-- FastAPI
-- PostgreSQL
-- SQLAlchemy ORM
-- Alembic migrations
-- JWT Authentication
-- Automated testing
-- Docker
-- GitHub Actions CI/CD
+> [!IMPORTANT]
+> This repository is a foundation, not a substitute for a threat model. Review
+> the [known limitations](#known-limitations) and adapt the defaults to your
+> infrastructure before serving production traffic.
 
-Maintained by **HoungDev**.
+## Why this template?
 
-This project provides a production-focused backend foundation with clean architecture, security best practices, and developer-friendly workflows.
+| Production concern | Included foundation |
+| --- | --- |
+| Authentication | JWT access tokens and hashed, rotating refresh tokens |
+| Authorization | User and admin roles with protected endpoints |
+| Database lifecycle | PostgreSQL, SQLAlchemy, and Alembic migrations |
+| API hardening | CORS, security headers, rate limiting, and error handlers |
+| Reliability | Health checks, transaction rollback, and request logging |
+| Quality | Pytest, Ruff, dependency audit, and GitHub Actions CI |
+| Operations | Environment-based configuration and Gunicorn/Uvicorn guidance |
 
----
+## Quick start
 
-## 💗 Support Open Source Development
-
-FastAPI Production API is an open-source project maintained by **HoungDev**.
-
-Maintaining a production-ready backend template requires continuous work including:
-
-- 🔒 Security updates and dependency maintenance
-- 🧪 Improving automated tests and reliability
-- 📚 Maintaining documentation and examples
-- 🚀 Adding new features and developer improvements
-
-If this project helps you build better FastAPI applications, you can support the project by:
-
-- ⭐ Starring the repository
-- 🐛 Reporting issues
-- 💡 Suggesting improvements
-- 🤝 Contributing code
-- 💗 Becoming a GitHub Sponsor
-
-Every contribution helps keep this project actively maintained and improved.
-
-Thank you for supporting open-source software.
-
-## 🛠️ Tech Stack
-
-### Backend
-- ⚡ **FastAPI** - Modern Python web framework for building APIs
-- 🐘 **PostgreSQL** - Reliable relational database
-- 🔗 **SQLAlchemy ORM** - Database abstraction layer
-- 🗃️ **Alembic** - Database migration management
-- 🔐 **JWT Authentication** - Secure authentication system
-
-### Development & Quality
-- 🐍 **Python 3.12**
-- 🧪 **Pytest** - Automated testing
-- 🐳 **Docker** - Containerized development and deployment
-- ⚙️ **GitHub Actions** - CI/CD automation
-
-### Production
-- 🚀 Production-ready configuration
-- 🔒 Security-focused architecture
-- 📦 Environment-based configuration
-- 📖 Developer-friendly documentation
----
-
-# Features
-
-## Backend
-
-- FastAPI framework
-- PostgreSQL database
-- SQLAlchemy ORM
-- Alembic database migrations
-- Pydantic Settings configuration
-- Gunicorn + Uvicorn production server
-
-
-## Authentication & Security
-
-- JWT Authentication
-- OAuth2 Password Bearer authentication
-- Access Token authentication
-- Refresh Token authentication
-- Refresh Token hashing
-- Refresh Token rotation
-- Refresh Token revocation
-- bcrypt password hashing
-- JWT issuer validation
-- JWT audience validation
-- Role-based authorization
-
-
-## Middleware
-
-- CORS configuration
-- Security headers middleware
-- Rate limiting middleware
-- Request logging middleware
-
-
-## Reliability
-
-- Database health check
-- Global exception handling
-- Database transaction rollback safety
-- Environment-based configuration
-
-
-## Testing & CI/CD
-
-- Pytest automated testing
-- Authentication tests
-- JWT security tests
-- Refresh token rotation tests
-- Rate limit tests
-- GitHub Actions CI pipeline
-- Dependency security audit
-
----
-
-## Project Structure
-
-```text
-fastapi-production-api/
-│
-├── .github/                    # GitHub workflows and repository configuration
-│
-├── src/                        # Application source code
-│
-├── tests/                      # Automated test suite
-│
-├── alembic/                    # Database migration scripts
-│
-├── docker-compose.yml          # Container configuration
-├── gunicorn.conf.py            # Production server configuration
-├── alembic.ini                 # Alembic configuration
-│
-├── pyproject.toml              # Project dependencies and metadata
-├── uv.lock                     # Locked dependency versions
-│
-├── .env.example                # Environment template
-│
-├── README.md
-├── CHANGELOG.md
-├── ROADMAP.md
-├── DEPLOYMENT.md
-├── SECURITY.md
-├── CONTRIBUTING.md
-├── CODE_OF_CONDUCT.md
-└── LICENSE
-
-# Requirements
+### Requirements
 
 - Python 3.13+
-- PostgreSQL
-- uv package manager
+- [uv](https://docs.astral.sh/uv/)
+- Docker, or a local PostgreSQL server
 
----
-
-# Installation
-
-Clone repository:
+### 1. Clone and configure
 
 ```bash
 git clone https://github.com/HoungDev/fastapi-production-api.git
-
 cd fastapi-production-api
-```
-
-Install dependencies:
-
-```bash
-uv sync
-```
-
----
-
-# Environment Configuration
-
-Create environment file:
-
-```bash
 cp .env.example .env
 ```
 
-Example:
+On PowerShell, replace the last command with:
 
-```env
-APP_NAME=FastAPI Production API
-
-ENVIRONMENT=development
-
-DEBUG=false
-
-LOG_LEVEL=INFO
-
-DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/database
-
-SECRET_KEY=your-secret-key
-
-ALGORITHM=HS256
-
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-REFRESH_TOKEN_EXPIRE_DAYS=7
+```powershell
+Copy-Item .env.example .env
 ```
 
----
+Generate a secret and assign the result to `SECRET_KEY` in `.env`:
 
-# Database Migration
+```bash
+uv run python -c "import secrets; print(secrets.token_urlsafe(48))"
+```
 
-Run migrations:
+### 2. Start PostgreSQL and install dependencies
+
+```bash
+docker compose up -d postgres
+uv sync --locked
+```
+
+If PostgreSQL is already running, update `DATABASE_URL` in `.env` and skip the
+Docker command.
+
+### 3. Migrate and run
 
 ```bash
 uv run alembic upgrade head
+uv run uvicorn app.main:app --reload
 ```
 
-Create migration:
+Open:
+
+- API: <http://localhost:8000>
+- Swagger UI: <http://localhost:8000/docs>
+- ReDoc: <http://localhost:8000/redoc>
+- Health: <http://localhost:8000/health>
+
+## Included capabilities
+
+### Authentication and authorization
+
+- Registration and OAuth2 password login
+- JWT issuer, audience, expiration, subject, and token-type validation
+- Hashed refresh tokens with rotation and revocation
+- bcrypt password hashing
+- Current-user endpoints and role-based admin routes
+
+### API and data layer
+
+- FastAPI and Pydantic request/response models
+- PostgreSQL with SQLAlchemy ORM
+- Alembic schema migrations
+- Database and application health checks
+- Environment-based settings
+
+### Security and reliability
+
+- Configurable CORS
+- Security response headers
+- Request logging
+- Global exception handling
+- Transaction rollback on write failures
+- In-memory request rate limiting
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Client["API client"] --> Proxy["Reverse proxy / TLS"]
+    Proxy --> API["FastAPI application"]
+    API --> Auth["JWT and RBAC"]
+    API --> DB["SQLAlchemy"]
+    DB --> Postgres[("PostgreSQL")]
+    API --> Logs["Application logs"]
+```
+
+```text
+fastapi-production-api/
+├── .github/                # CI and community configuration
+├── alembic/                # Database migrations
+├── src/app/                # FastAPI application
+├── src/fastapi_production_api/
+│   └── __init__.py         # Package version and CLI entry point
+├── tests/                  # Automated test suite
+├── docker-compose.yml      # Local PostgreSQL service
+├── gunicorn.conf.py        # Linux process-manager configuration
+└── pyproject.toml          # Metadata, dependencies, and tool settings
+```
+
+## API overview
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/health` | Application health |
+| `GET` | `/health/db` | Database connectivity |
+| `POST` | `/register/` | Create a user |
+| `POST` | `/login/` | Issue access and refresh tokens |
+| `POST` | `/auth/refresh` | Rotate a refresh token |
+| `POST` | `/auth/logout` | Revoke a refresh token |
+| `GET` | `/auth/me` | Return the authenticated user |
+| `GET` | `/admin/users` | List users as an admin |
+
+The generated OpenAPI document at `/docs` is the source of truth for the full
+request and response schemas.
+
+## Quality checks
+
+Run the same checks used by CI:
 
 ```bash
-uv run alembic revision --autogenerate -m "migration message"
-```
-
----
-
-# Development Server
-
-Run:
-
-```bash
-uv run uvicorn src.app.main:app --reload
-```
-
-Server:
-
-```
-http://localhost:8000
-```
-
-Swagger:
-
-```
-http://localhost:8000/docs
-```
-
-ReDoc:
-
-```
-http://localhost:8000/redoc
-```
-
----
-
-# Production Server
-
-Production deployment uses Gunicorn with Uvicorn workers.
-
-Run:
-
-```bash
-uv run gunicorn \
--c gunicorn.conf.py \
-src.app.main:app
-```
-
-Architecture:
-
-```
-Nginx
- |
-Gunicorn
- |
-FastAPI
- |
-PostgreSQL
-```
-
----
-
-# Testing
-
-Run:
-
-```bash
+uv sync --locked --all-groups
+uv run ruff check .
+uv run ruff format --check .
+uv run alembic upgrade head
 uv run pytest
+uv run pip-audit
+uv build
 ```
 
-Current test status:
+CI runs against PostgreSQL 17 rather than silently substituting SQLite. It also
+verifies that the built wheel contains and can import the application.
 
-```
-34 passed
-```
+## Production deployment
 
-Coverage includes:
+For a self-hosted Linux service, run Gunicorn with the maintained standalone
+Uvicorn worker:
 
-```
-Authentication
-├── Register
-├── Login
-├── JWT validation
-├── Protected routes
-└── Current user
-
-
-Token Security
-├── Access token
-├── Refresh token
-├── Token expiration
-├── Token issuer
-├── Token audience
-└── Refresh rotation
-
-
-System
-├── Health check
-├── Rate limiting
-└── Exception handling
+```bash
+uv sync --locked --no-dev
+uv run alembic upgrade head
+uv run gunicorn -c gunicorn.conf.py app.main:app
 ```
 
----
+Read [DEPLOYMENT.md](DEPLOYMENT.md) for the reverse proxy, systemd, TLS, and
+deployment checklist. Container orchestration platforms should normally run one
+Uvicorn process per container and scale at the container level.
 
-# CI/CD Pipeline
+## Known limitations
 
-GitHub Actions runs automatically on:
+- Rate limiting is stored in process memory. It is not shared across workers or
+  hosts; use Redis or an API gateway for distributed enforcement.
+- Password reset, email verification, OAuth providers, and MFA are planned but
+  are not part of the current release.
+- The provided Docker Compose service runs PostgreSQL for local development; it
+  does not yet build or deploy the API container.
+- Deployment defaults must be reviewed for your traffic, proxy topology,
+  secrets platform, backup policy, and compliance requirements.
 
-- Push to main branch
-- Pull requests to main branch
+See [ROADMAP.md](ROADMAP.md) for planned work and
+[CHANGELOG.md](CHANGELOG.md) for release history.
 
+## Contributing
 
-Pipeline:
+Bug reports, documentation fixes, tests, and focused feature contributions are
+welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md), then look for issues
+labeled [`good first issue`](https://github.com/HoungDev/fastapi-production-api/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22)
+or [`help wanted`](https://github.com/HoungDev/fastapi-production-api/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22help%20wanted%22).
 
-```
-Checkout repository
-        |
-Setup Python
-        |
-Install uv
-        |
-Install dependencies
-        |
-Run migrations
-        |
-Run tests
-        |
-Security audit
-```
+For security vulnerabilities, follow [SECURITY.md](SECURITY.md) instead of
+opening a public issue.
 
----
+## Support the project
 
-# API Endpoints
+If this foundation saves you time:
 
-## Health
+- [Star the repository](https://github.com/HoungDev/fastapi-production-api)
+- Share feedback in [Discussions](https://github.com/HoungDev/fastapi-production-api/discussions)
+- Improve an issue or documentation page
+- [Sponsor HoungDev](https://github.com/sponsors/HoungDev) when the Sponsors
+  profile becomes available
 
-```
-GET /health
-```
+## License
 
-Database health:
-
-```
-GET /health/db
-```
-
-
-## Authentication
-
-Register:
-
-```
-POST /register/
-```
-
-Login:
-
-```
-POST /login/
-```
-
-Refresh token:
-
-```
-POST /auth/refresh
-```
-
-Logout:
-
-```
-POST /auth/logout
-```
-
-
-## User
-
-Current user:
-
-```
-GET /auth/me
-```
-
----
-
-# Security Implementation
-
-Implemented security features:
-
-- Password hashing with bcrypt
-- JWT authentication
-- JWT issuer validation
-- JWT audience validation
-- Refresh token hashing
-- Refresh token rotation
-- Refresh token revocation
-- Rate limiting
-- Security headers
-- Exception isolation
-- Database transaction rollback
-
----
-
-# Open Source
-
-This project is built with the goal of helping developers learn and build secure FastAPI backend systems.
-
-Contributions are welcome.
-
-Please read:
-
-- [CONTRIBUTING.md](CONTRIBUTING.md)
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- [ROADMAP.md](ROADMAP.md)
-
----
-
-# Maintainer
-
-Maintained by:
-
-**HoungDev**
-
-Open Source Maintainer focused on:
-
-- Python backend development
-- FastAPI architecture
-- API security
-- Production engineering
-
----
-
-# Production Status
-
-Current release:
-
-```
-v1.0.0
-```
-
-Completed:
-
-✅ Authentication system
-
-✅ JWT security
-
-✅ Refresh token rotation
-
-✅ Database migrations
-
-✅ Automated testing
-
-✅ CI/CD pipeline
-
-✅ Security middleware
-
-✅ Logging system
-
----
-
-# Roadmap
-
-Future improvements:
-
-- Redis integration
-- Background task processing
-- Monitoring system
-- Metrics collection
-- Cloud deployment examples
-- Improved developer experience
-
-See:
-
-```
-ROADMAP.md
-```
-
----
-
-# Community
-
-Contributions and discussions are welcome.
-
-Please check:
-
-- Issues
-- Pull Requests
-- Feature Requests
-- Discussions
-
----
-
-# License
-
-MIT License
+Distributed under the [MIT License](LICENSE). Maintained by
+[@HoungDev](https://github.com/HoungDev).

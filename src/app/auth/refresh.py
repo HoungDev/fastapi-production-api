@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -16,13 +16,11 @@ def refresh_access_token(
     refresh_token: str,
     db: Session,
 ):
-    hashed_token = hash_refresh_token(
-        refresh_token
-    )
+    hashed_token = hash_refresh_token(refresh_token)
 
-    stored_token = db.query(RefreshToken).filter(
-        RefreshToken.token == hashed_token
-    ).first()
+    stored_token = (
+        db.query(RefreshToken).filter(RefreshToken.token == hashed_token).first()
+    )
 
     if not stored_token:
         raise HTTPException(
@@ -42,9 +40,7 @@ def refresh_access_token(
             detail="Refresh token expired",
         )
 
-    user = db.query(User).filter(
-        User.id == stored_token.user_id
-    ).first()
+    user = db.query(User).filter(User.id == stored_token.user_id).first()
 
     if not user:
         raise HTTPException(
@@ -56,9 +52,7 @@ def refresh_access_token(
 
     new_db_refresh_token = RefreshToken(
         user_id=user.id,
-        token=hash_refresh_token(
-            new_refresh_token
-        ),
+        token=hash_refresh_token(new_refresh_token),
         expires_at=expires_at,
     )
 
@@ -88,13 +82,11 @@ def revoke_refresh_token(
     refresh_token: str,
     db: Session,
 ):
-    hashed_token = hash_refresh_token(
-        refresh_token
-    )
+    hashed_token = hash_refresh_token(refresh_token)
 
-    stored_token = db.query(RefreshToken).filter(
-        RefreshToken.token == hashed_token
-    ).first()
+    stored_token = (
+        db.query(RefreshToken).filter(RefreshToken.token == hashed_token).first()
+    )
 
     if not stored_token:
         raise HTTPException(

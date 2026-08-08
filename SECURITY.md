@@ -1,47 +1,53 @@
 # Security Policy
 
-## Supported Versions
+## Supported versions
 
-The following versions are currently supported:
-
-| Version | Supported |
+| Version | Security support |
 | --- | --- |
-| v1.0.x | Yes |
-| Older versions | No |
+| `1.0.x` | Supported |
+| `< 1.0` | Not supported |
 
-## Reporting a Vulnerability
+Security fixes are applied to the latest supported patch release. Upgrade to
+the newest release before reporting behavior that may already be fixed.
 
-Please do not report security vulnerabilities through public GitHub issues.
+## Report a vulnerability privately
 
-To report a security issue, please contact:
+Do not disclose suspected vulnerabilities in public issues, discussions, or
+pull requests.
 
-**Email:** chukafe0401@gmail.com
+Use one of these private channels:
 
-Please include:
+1. [Open a private GitHub security advisory](https://github.com/HoungDev/fastapi-production-api/security/advisories/new), if private vulnerability reporting is enabled.
+2. Email `chukafe0401@gmail.com` with the subject
+   `Security report: fastapi-production-api`.
 
-- Description of the vulnerability
-- Steps to reproduce
-- Potential impact
-- Logs or screenshots if available
+Include:
 
-## Security Response
+- affected version or commit SHA;
+- vulnerability description and potential impact;
+- minimal reproduction steps or proof of concept;
+- relevant configuration with credentials and personal data removed;
+- whether the issue has been disclosed anywhere else.
 
-We will:
+Do not include live credentials, access tokens, personal data, or production
+database contents. Use synthetic data in proofs of concept.
 
-1. Review the report.
-2. Investigate the issue.
-3. Provide a fix if necessary.
-4. Communicate the resolution.
+## Response process
 
-## Security Practices
+The maintainer will aim to:
 
-This project uses:
+1. acknowledge the report within five business days;
+2. validate impact and affected versions;
+3. coordinate a fix and disclosure timeline with the reporter;
+4. publish a patch release and security advisory when appropriate.
 
-- JWT authentication
-- Refresh token rotation
-- Password hashing
-- Role-based authorization
-- API security middleware
-- Secure configuration management
+Timelines may vary with severity and maintainer availability. Please allow a
+reasonable remediation window before public disclosure.
 
-Thank you for helping improve the security of this project.
+## Security boundaries
+
+The project provides security-focused defaults, but deployers remain
+responsible for secrets management, proxy trust, TLS, database access, backups,
+distributed rate limiting, dependency updates, monitoring, and their own threat
+model. Review the [known limitations](README.md#known-limitations) before
+production use.

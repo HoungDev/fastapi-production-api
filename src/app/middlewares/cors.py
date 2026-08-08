@@ -6,9 +6,7 @@ from app.core.config import settings
 
 def setup_cors(app: FastAPI) -> None:
     origins = [
-        origin.strip()
-        for origin in settings.CORS_ORIGINS.split(",")
-        if origin.strip()
+        origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()
     ]
 
     app.add_middleware(

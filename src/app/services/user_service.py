@@ -8,4 +8,3 @@ class UserService:
 
     def create_user(self, user: UserCreate):
         return self.repository.create(user)
-from app.auth.security import hash_password    

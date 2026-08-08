@@ -7,7 +7,6 @@ from app.db.dependency import get_db
 from app.models.user import User
 from app.schemas.user import UserAdminResponse, UserRoleUpdate
 
-
 router = APIRouter(
     prefix="/admin",
     tags=["Admin"],
@@ -51,11 +50,7 @@ def get_user(
 ):
     require_admin(current_user)
 
-    user = (
-        db.query(User)
-        .filter(User.id == user_id)
-        .first()
-    )
+    user = db.query(User).filter(User.id == user_id).first()
 
     if not user:
         raise HTTPException(
@@ -78,11 +73,7 @@ def update_user_role(
 ):
     require_admin(current_user)
 
-    user = (
-        db.query(User)
-        .filter(User.id == user_id)
-        .first()
-    )
+    user = db.query(User).filter(User.id == user_id).first()
 
     if not user:
         raise HTTPException(
@@ -108,11 +99,7 @@ def delete_user(
 ):
     require_admin(current_user)
 
-    user = (
-        db.query(User)
-        .filter(User.id == user_id)
-        .first()
-    )
+    user = db.query(User).filter(User.id == user_id).first()
 
     if not user:
         raise HTTPException(
@@ -123,6 +110,4 @@ def delete_user(
     db.delete(user)
     db.commit()
 
-    return {
-        "message": "User deleted successfully"
-    }
+    return {"message": "User deleted successfully"}

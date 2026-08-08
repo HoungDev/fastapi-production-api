@@ -1,8 +1,8 @@
 services:
   postgres:
-    image: postgres:17
+    image: postgres:17-alpine
     container_name: fastapi-postgres
-    restart: always
+    restart: unless-stopped
 
     environment:
       POSTGRES_USER: fastapi_user
@@ -14,6 +14,12 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fastapi_user -d fastapi_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   postgres_data:

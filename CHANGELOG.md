@@ -1,101 +1,54 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project are documented in this file. The format is
+based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the
+project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
----
+## [Unreleased]
 
-# v1.0.0 - Production Foundation
+### Added
 
-Release date:
+- Ruff linting and formatting checks
+- Dependency auditing as an enforced CI gate
+- PostgreSQL 17 service for migrations and tests in CI
+- Wheel build and import smoke test
+- Package URLs, classifiers, and release metadata
+- Explicit current limitations and a release checklist
 
-2026
+### Changed
 
-## Added
+- Prepared package version 1.0.1
+- Reworked README around value, quick start, architecture, and evidence
+- Replaced deprecated `uvicorn.workers.UvicornWorker` with `uvicorn-worker`
+- Replaced the deprecated `httpx` test dependency with `httpx2`
+- Replaced Passlib's unmaintained bcrypt adapter with direct bcrypt calls while
+  retaining compatibility with existing bcrypt hashes
+- Updated contribution, deployment, and roadmap documentation
+- Moved funding configuration to `.github/FUNDING.yml`
 
-### Core
+### Fixed
 
-- FastAPI production architecture
-- PostgreSQL database integration
-- SQLAlchemy ORM
-- Alembic migrations
-- Environment-based configuration
+- Closed the README project-structure code block that hid subsequent sections
+- Aligned the documented Python requirement with Python 3.13
+- Included the `app` package in built wheel artifacts
+- Removed hard-coded application version strings
+- Removed a CI security-audit command that could silently succeed after failure
 
+## [1.0.0] - 2026-08-05
 
-### Authentication
+### Added
 
-- JWT authentication
-- OAuth2 password authentication
-- Access token support
-- Refresh token support
-- Refresh token rotation
-- Refresh token revocation
-- Refresh token hashing
+- FastAPI application architecture
+- PostgreSQL database integration with SQLAlchemy and Alembic
+- JWT access-token authentication
+- Hashed refresh tokens with rotation and revocation
 - bcrypt password hashing
-
-
-### Security
-
-- JWT issuer validation
-- JWT audience validation
 - Role-based authorization
-- Security headers middleware
-- Rate limiting middleware
-- Request logging middleware
-- Global exception handling
-- Database transaction rollback safety
+- CORS, security headers, rate limiting, and request logging
+- Health checks and global exception handling
+- Authentication and token-security test suite
+- GitHub Actions CI
+- Initial deployment and community documentation
 
-
-### Testing
-
-- Authentication test suite
-- JWT security tests
-- Refresh token rotation tests
-- Rate limit tests
-
-Current status:
-
-```
-34 tests passed
-```
-
-
-### Developer Experience
-
-- CONTRIBUTING.md
-- CODE_OF_CONDUCT.md
-- ROADMAP.md
-- Issue templates
-- GitHub Actions CI/CD
-
-
----
-
-# Future Releases
-
-## v1.1.0
-
-Planned:
-
-- Improved developer experience
-- More integration tests
-- Additional documentation
-- Authentication improvements
-
-
-## v1.2.0
-
-Planned:
-
-- Email verification
-- Password reset
-- OAuth providers
-
-
-## v2.0.0
-
-Future:
-
-- Redis integration
-- Monitoring
-- Metrics
-- Cloud deployment examples
+[Unreleased]: https://github.com/HoungDev/fastapi-production-api/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/HoungDev/fastapi-production-api/releases/tag/v1.0.0

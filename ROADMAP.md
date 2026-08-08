@@ -1,236 +1,78 @@
-\# Roadmap
+# Roadmap
 
+FastAPI Production API aims to be a practical, security-focused foundation for
+building and learning production backend engineering. The roadmap communicates
+direction, not a guarantee of delivery dates.
 
+## v1.0 — Production foundation
 
-The roadmap describes the future development direction of FastAPI Production API.
+Status: released
 
+- FastAPI application and PostgreSQL integration
+- SQLAlchemy models and Alembic migrations
+- Access and refresh token authentication
+- Refresh token hashing, rotation, and revocation
+- Role-based authorization
+- Security headers, CORS, rate limiting, and request logging
+- Health checks and exception handling
+- Automated tests and GitHub Actions CI
+- Deployment and community documentation
 
+## v1.0.1 — Release readiness
 
-This project focuses on providing a secure, scalable, and production-ready FastAPI foundation for backend developers.
+Status: in progress
 
+- Repair README and documentation rendering
+- Align package, application, and release versions
+- Validate the distributable wheel
+- Run CI against PostgreSQL
+- Enforce formatting, lint, and dependency auditing
+- Update the supported Gunicorn/Uvicorn worker integration
+- Standardize repository funding and contribution files
 
+## v1.1 — Observability and developer experience
 
-\---
+Status: planned
 
+- Structured JSON logging with request correlation IDs
+- Prometheus-compatible application metrics
+- OpenTelemetry tracing example
+- Readiness and liveness semantics
+- Expanded integration tests
+- Improved local-development commands and examples
 
+## v1.2 — Authentication lifecycle
 
-\# Version 1.0.0 - Production Foundation
+Status: planned
 
+- Email verification
+- Password reset flow
+- OAuth provider examples
+- Multi-factor authentication foundation
+- Session and device management
 
+## v1.3 — Distributed workloads
 
-Status: Completed ✅
+Status: planned
 
+- Redis-backed rate limiting
+- Background task processing
+- Caching patterns and invalidation guidance
+- Async database evaluation and performance benchmarks
+- Load-testing examples
 
+## v2.0 — Deployment patterns at scale
 
-Released:
+Status: exploratory
 
+- Container image and Compose development stack
+- Kubernetes deployment example
+- Cloud deployment guides
+- Backup, disaster recovery, and operational runbooks
+- Advanced policy and audit capabilities
 
+## Contributing to the roadmap
 
-\- FastAPI application architecture
-
-\- PostgreSQL database integration
-
-\- SQLAlchemy ORM
-
-\- Alembic migrations
-
-\- JWT authentication
-
-\- OAuth2 password authentication
-
-\- Access token support
-
-\- Refresh token rotation
-
-\- Refresh token hashing
-
-\- Refresh token revocation
-
-\- Password hashing with bcrypt
-
-\- Role-based authorization
-
-\- Security headers middleware
-
-\- Rate limiting
-
-\- Request logging
-
-\- Global exception handling
-
-\- Automated testing
-
-\- GitHub Actions CI
-
-\- Production deployment documentation
-
-
-
-\---
-
-
-
-\# Version 1.1 - Developer Experience
-
-
-
-Status: Planned 🚧
-
-
-
-Goals:
-
-
-
-\- Improve API documentation
-
-\- Add more examples
-
-\- Improve contributor experience
-
-\- Expand test coverage
-
-\- Add development utilities
-
-
-
-Planned features:
-
-
-
-\- Better API examples
-
-\- More integration tests
-
-\- Improved local development workflow
-
-\- Additional documentation
-
-
-
-\---
-
-
-
-\# Version 1.2 - Authentication Expansion
-
-
-
-Status: Planned 🚧
-
-
-
-Goals:
-
-
-
-Improve authentication capabilities.
-
-
-
-Planned features:
-
-
-
-\- Email verification
-
-\- Password reset flow
-
-\- OAuth providers
-
-\- Two-factor authentication support
-
-\- Session management improvements
-
-
-
-\---
-
-
-
-\# Version 1.3 - Scalability Improvements
-
-
-
-Status: Planned 🚧
-
-
-
-Goals:
-
-
-
-Prepare the project for larger production workloads.
-
-
-
-Planned features:
-
-
-
-\- Redis integration
-
-\- Background task processing
-
-\- Improved caching strategy
-
-\- Async database optimization
-
-\- Performance monitoring
-
-
-
-\---
-
-
-
-\# Version 2.0 - Enterprise Features
-
-
-
-Status: Future 🔮
-
-
-
-Goals:
-
-
-
-Provide enterprise-grade backend capabilities.
-
-
-
-Planned features:
-
-
-
-\- Advanced monitoring
-
-\- Metrics dashboard
-
-\- Distributed architecture support
-
-\- Kubernetes deployment examples
-
-\- Advanced observability
-
-\- Cloud deployment guides
-
-
-
-\---
-
-
-
-\# Community Goals
-
-
-
-The long-term goal is to build a practical open-source FastAPI foundation where developers can learn and contribute production backend engineering practices.
-
-
-
-Contributions, suggestions, and discussions are welcome.
-
-
-
+Use GitHub Discussions to propose or validate larger ideas. Once the problem and
+scope are clear, an issue can track implementation. Small issues labeled
+`good first issue` or `help wanted` are the best entry points for contributors.

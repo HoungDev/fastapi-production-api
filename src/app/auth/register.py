@@ -6,7 +6,6 @@ from app.db.dependency import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse
 
-
 router = APIRouter(
     prefix="/register",
     tags=["Authentication"],
@@ -18,9 +17,7 @@ def register(
     user: UserCreate,
     db: Session = Depends(get_db),
 ):
-    hashed_password = hash_password(
-        user.password
-    )
+    hashed_password = hash_password(user.password)
 
     db_user = User(
         username=user.username,

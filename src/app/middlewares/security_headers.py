@@ -16,14 +16,20 @@ def setup_security_headers(
 
         response.headers["X-Frame-Options"] = "DENY"
 
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-
-        response.headers["Referrer-Policy"] = (
-            "strict-origin-when-cross-origin"
-        )
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'"
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "img-src 'self' data: https://fastapi.tiangolo.com; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+
+        response.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=()"
         )
 
         return response
