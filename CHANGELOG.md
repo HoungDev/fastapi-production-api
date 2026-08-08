@@ -6,6 +6,8 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-08-08
+
 ### Added
 
 - Ruff linting and formatting checks
@@ -50,5 +52,6 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - GitHub Actions CI
 - Initial deployment and community documentation
 
-[Unreleased]: https://github.com/HoungDev/fastapi-production-api/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/HoungDev/fastapi-production-api/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/HoungDev/fastapi-production-api/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/HoungDev/fastapi-production-api/releases/tag/v1.0.0
