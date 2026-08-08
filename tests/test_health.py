@@ -13,6 +13,31 @@ def test_health_check():
     assert response.json() == {"status": "ok"}
 
 
+def test_database_health_check():
+    response = client.get("/health/db")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ok",
+        "database": "connected",
+    }
+
+
+def test_database_health_check_reports_unavailable_database(monkeypatch):
+    def fail_to_connect():
+        raise OSError("database unavailable")
+
+    monkeypatch.setattr("app.api.v1.health.engine.connect", fail_to_connect)
+
+    response = client.get("/health/db")
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "status": "error",
+        "database": "disconnected",
+    }
+
+
 def test_root_exposes_package_version():
     response = client.get("/")
 
