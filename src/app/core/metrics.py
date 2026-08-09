@@ -31,6 +31,18 @@ HTTP_REQUESTS_IN_PROGRESS = Gauge(
     multiprocess_mode="livesum",
 )
 
+RATE_LIMIT_DECISIONS_TOTAL = Counter(
+    "fastapi_production_api_rate_limit_decisions_total",
+    "Rate-limit decisions made by the API.",
+    ("backend", "outcome"),
+)
+
+RATE_LIMIT_BACKEND_ERRORS_TOTAL = Counter(
+    "fastapi_production_api_rate_limit_backend_errors_total",
+    "Rate-limit backend errors by bounded operation category.",
+    ("backend", "operation"),
+)
+
 
 def render_metrics() -> tuple[bytes, str]:
     if os.environ.get("PROMETHEUS_MULTIPROC_DIR"):

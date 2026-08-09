@@ -9,7 +9,7 @@ Pytest commands documented by the project.
 
 - Python 3.13 or newer
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
-- Docker with the Compose v2 plugin, or a reachable PostgreSQL 17 server
+- Docker with the Compose v2 plugin, or reachable PostgreSQL 17 and Redis services
 
 Check the tools before setup:
 
@@ -32,10 +32,11 @@ The command performs these idempotent steps:
 1. Copies `.env.example` to `.env` when needed and generates a local
    `SECRET_KEY`. An existing `.env` is never overwritten.
 2. Installs the exact locked development dependencies.
-3. Starts PostgreSQL and waits for its health check.
+3. Starts PostgreSQL and Redis and waits for their health checks.
 4. Applies all Alembic migrations.
 
-To use PostgreSQL outside Docker, set `DATABASE_URL` in `.env` first and run:
+To use PostgreSQL and Redis outside Docker, set `DATABASE_URL` and `REDIS_URL`
+in `.env` first and run:
 
 ```bash
 python scripts/dev.py setup --skip-docker
@@ -55,7 +56,7 @@ shared demo password.
 
 | Command | Purpose |
 | --- | --- |
-| `python scripts/dev.py db-up` | Start PostgreSQL and wait until it is healthy |
+| `python scripts/dev.py db-up` | Start PostgreSQL and Redis and wait until healthy |
 | `python scripts/dev.py db-down` | Stop Compose services without deleting data |
 | `python scripts/dev.py migrate` | Apply pending Alembic migrations |
 | `python scripts/dev.py serve` | Run Uvicorn with auto-reload |
@@ -64,6 +65,16 @@ shared demo password.
 The helper is a convenience layer. Individual commands remain available for
 focused work, for example `uv run pytest tests/test_login.py` or `uv run ruff
 format .`.
+
+To run the real Redis concurrency and TTL tests against the local Compose
+service in PowerShell:
+
+```powershell
+$env:REDIS_TEST_URL='redis://localhost:6379/15'; uv run pytest tests/test_redis_rate_limit_integration.py
+```
+
+The test database is flushed before and after these tests. Never point
+`REDIS_TEST_URL` at a shared or production Redis database.
 
 ## Typical contribution workflow
 
@@ -80,16 +91,17 @@ coverage output, and distributions are ignored by Git.
 
 ## Troubleshooting
 
-### Port 5432 is already in use
+### Port 5432 or 6379 is already in use
 
-Either stop the other PostgreSQL service or point `DATABASE_URL` at it and use
-`setup --skip-docker`. Do not run two database servers on the same host port.
+Stop the conflicting service, or point `DATABASE_URL` and `REDIS_URL` at
+reachable dependencies and use `setup --skip-docker`. Do not run duplicate
+services on the same host ports.
 
-### PostgreSQL does not become healthy
+### PostgreSQL or Redis does not become healthy
 
-Inspect the container with `docker compose ps` and `docker compose logs
-postgres`. Confirm Docker has enough disk space and that the values in
-`docker-compose.yml` match the local `DATABASE_URL`.
+Inspect the containers with `docker compose ps`, `docker compose logs postgres`,
+and `docker compose logs redis`. Confirm Docker has enough disk space and that
+Compose values match the local dependency URLs.
 
 ### Docker reports an API 500 or cannot reach the Linux engine
 

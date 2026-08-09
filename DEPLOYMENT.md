@@ -41,6 +41,7 @@ Recommended baseline:
 - Ubuntu 24.04 LTS or an equivalent supported Linux distribution
 - Python 3.13+
 - PostgreSQL 17+
+- Redis 8+
 - Nginx
 - Git
 - [uv](https://docs.astral.sh/uv/)
@@ -81,6 +82,10 @@ SECRET_KEY=<generated-secret>
 JWT_AUDIENCE=fastapi-client
 JWT_ISSUER=fastapi-production-api
 CORS_ORIGINS=https://your-frontend.example
+REDIS_URL=rediss://app:<password>@redis.internal.example:6379/0
+RATE_LIMIT_BACKEND=redis
+RATE_LIMIT_KEY_SECRET=<generated-dedicated-secret>
+RATE_LIMIT_FAILURE_MODE=closed
 EMAIL_DELIVERY_MODE=smtp
 EMAIL_VERIFICATION_URL=https://your-frontend.example/verify-email
 PASSWORD_RESET_URL=https://your-frontend.example/reset-password
@@ -105,6 +110,11 @@ Password reset revokes all refresh tokens, but it cannot immediately invalidate
 already-issued stateless access tokens. Keep access-token lifetimes short and
 use a server-side token version or denylist if your threat model requires
 immediate revocation.
+
+Generate `RATE_LIMIT_KEY_SECRET` independently from JWT and encryption keys.
+Redis quota keys contain only a versioned HMAC identifier and fixed-window
+number; rotating this key safely resets active quota buckets. Keep fail-closed
+unless an explicit availability decision accepts temporary unprotected traffic.
 
 Generate the MFA encryption key independently from the JWT signing key:
 
@@ -263,8 +273,10 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-Only trust forwarded headers from proxies you control. Configure firewall rules
-so the Gunicorn port is not publicly reachable.
+Only trust forwarded headers from proxies you control. Configure Uvicorn's
+forwarded allowlist (for example `FORWARDED_ALLOW_IPS=127.0.0.1` for same-host
+Nginx) and firewall the Gunicorn port from untrusted clients. The application
+uses the ASGI scope client address and never parses forwarding headers itself.
 
 ## 8. Enable HTTPS
 
@@ -284,8 +296,10 @@ journalctl -u fastapi-production-api -f
 sudo systemctl restart fastapi-production-api
 ```
 
-The built-in rate limiter is process-local. For multiple workers or hosts,
-enforce distributed limits through Redis, an API gateway, or the edge proxy.
+Set `RATE_LIMIT_BACKEND=redis` for shared limits across workers or hosts. Redis
+outages are fail-closed by default; an explicitly configured fail-open policy is
+observable in logs and metrics. Roll back without data migration by selecting
+`RATE_LIMIT_BACKEND=memory`, accepting process-local quotas until Redis returns.
 See [MONITORING.md](MONITORING.md) for Prometheus scraping, multi-worker metric
 aggregation, correlation IDs, alert ideas, and troubleshooting.
 See [ARCHITECTURE.md](ARCHITECTURE.md) for application trust boundaries and

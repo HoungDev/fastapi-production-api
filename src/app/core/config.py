@@ -1,7 +1,7 @@
 from typing import Literal, Self
 from urllib.parse import urlsplit
 
-from pydantic import SecretStr, model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -29,6 +29,24 @@ class Settings(BaseSettings):
     JWT_ISSUER: str = "fastapi-production-api"
 
     CORS_ORIGINS: str = ""
+
+    REDIS_URL: SecretStr = SecretStr("")
+
+    REDIS_CONNECT_TIMEOUT_SECONDS: float = Field(default=1.0, gt=0, le=30)
+
+    REDIS_SOCKET_TIMEOUT_SECONDS: float = Field(default=1.0, gt=0, le=30)
+
+    REDIS_MAX_CONNECTIONS: int = Field(default=20, gt=0, le=1000)
+
+    RATE_LIMIT_BACKEND: Literal["memory", "redis"] = "memory"
+
+    RATE_LIMIT_LIMIT: int = Field(default=100, gt=0, le=1_000_000)
+
+    RATE_LIMIT_WINDOW_SECONDS: int = Field(default=60, gt=0, le=86_400)
+
+    RATE_LIMIT_FAILURE_MODE: Literal["closed", "open"] = "closed"
+
+    RATE_LIMIT_KEY_SECRET: SecretStr = SecretStr("")
 
     EMAIL_DELIVERY_MODE: Literal["disabled", "smtp"] = "disabled"
 
@@ -96,6 +114,22 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> Self:
+        if self.RATE_LIMIT_BACKEND == "redis":
+            redis_url_value = self.REDIS_URL.get_secret_value()
+            redis_url = urlsplit(redis_url_value)
+            if redis_url.scheme not in {"redis", "rediss"} or not redis_url.hostname:
+                raise ValueError(
+                    "REDIS_URL must be a redis:// or rediss:// URL when the Redis "
+                    "rate-limit backend is enabled"
+                )
+
+            rate_limit_secret = self.RATE_LIMIT_KEY_SECRET.get_secret_value()
+            if len(rate_limit_secret.encode("utf-8")) < 32:
+                raise ValueError(
+                    "RATE_LIMIT_KEY_SECRET must contain at least 32 bytes when "
+                    "the Redis rate-limit backend is enabled"
+                )
+
         if self.MFA_ENABLED:
             from cryptography.fernet import Fernet
 
@@ -190,6 +224,18 @@ class Settings(BaseSettings):
             "your-secret-key",
         }
 
+        if (
+            self.RATE_LIMIT_BACKEND == "redis"
+            and self.RATE_LIMIT_KEY_SECRET.get_secret_value()
+            in {
+                "change_this_to_a_random_rate_limit_key",
+                "generate_a_secure_random_rate_limit_key",
+            }
+        ):
+            raise ValueError(
+                "RATE_LIMIT_KEY_SECRET must not use a placeholder in production"
+            )
+
         if self.DEBUG:
             raise ValueError("DEBUG must be false in production")
 
@@ -217,6 +263,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
+        hide_input_in_errors=True,
     )
 
 

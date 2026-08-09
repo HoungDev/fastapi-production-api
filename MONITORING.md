@@ -9,12 +9,16 @@ publish `/metrics` directly to the internet.
 | Endpoint | Meaning | Dependency check | Failure action |
 | --- | --- | --- | --- |
 | `/health/live` | The application process can serve HTTP | None | Restart the process |
-| `/health/ready` | The application can serve database-backed traffic | PostgreSQL `SELECT 1` | Remove the instance from service |
+| `/health/ready` | The application can serve traffic | PostgreSQL and Redis when distributed limiting is enabled | Remove the instance from service |
 
 Readiness returns HTTP `503` while PostgreSQL is unavailable. Liveness must not
 depend on PostgreSQL; otherwise a database incident can cause every application
 instance to restart at once. `/health` and `/health/db` remain as deprecated
 compatibility aliases.
+
+With `RATE_LIMIT_BACKEND=redis`, readiness includes separate `database` and
+`redis` checks and returns `503` if either is unavailable. Redis never affects
+liveness, which prevents dependency incidents from causing restart loops.
 
 Example Kubernetes probes:
 
@@ -48,6 +52,10 @@ The application exports:
 - `fastapi_production_api_http_request_duration_seconds`, a latency histogram
   labelled by method and route template
 - `fastapi_production_api_http_requests_in_progress`, labelled by method
+- `fastapi_production_api_rate_limit_decisions_total`, labelled by backend and
+  the bounded outcomes `allowed`, `blocked`, `fail_open`, or `fail_closed`
+- `fastapi_production_api_rate_limit_backend_errors_total`, labelled by backend
+  and bounded operation category
 
 Route templates are used instead of raw URLs to bound label cardinality. Protect
 the endpoint with network policy, firewall rules, or an allowlist at the reverse
@@ -89,6 +97,7 @@ through proxies and include it in downstream service logs.
 - P95 request latency above the endpoint service-level objective
 - No healthy targets or no recent metric samples
 - Repeated `database_readiness_check_failed` log events
+- Redis readiness failures or sustained fail-open/fail-closed decisions
 
 Tune thresholds from measured traffic; the repository cannot choose meaningful
 service-level objectives for a specific deployment.
@@ -112,6 +121,15 @@ service-level objectives for a specific deployment.
 3. Empty the directory before a full Gunicorn restart.
 4. Confirm Prometheus can reach `/metrics` and is not blocked by the proxy
    allowlist.
+
+### Redis is unavailable
+
+1. Check the `redis` readiness result and the configured outage policy.
+2. Inspect Redis DNS, TLS, credentials, connection limits, and latency without
+   logging the Redis URL or password.
+3. Fail-closed returns `503`; explicit fail-open continues traffic and emits a
+   decision metric and structured warning.
+4. Restore Redis access. Quota enforcement resumes without restarting the API.
 
 ### Follow one failed request
 

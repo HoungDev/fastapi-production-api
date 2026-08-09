@@ -58,6 +58,8 @@ def test_metrics_include_status_and_route_template():
     assert "fastapi_production_api_http_request_duration_seconds_bucket" in (
         response.text
     )
+    assert "fastapi_production_api_rate_limit_decisions_total" in response.text
+    assert "fastapi_production_api_rate_limit_backend_errors_total" in response.text
 
 
 def test_json_formatter_emits_correlation_fields():
@@ -75,6 +77,9 @@ def test_json_formatter_emits_correlation_fields():
     record.route = "/health/live"
     record.status_code = 200
     record.duration_ms = 1.25
+    record.rate_limit_backend = "redis"
+    record.rate_limit_policy = "closed"
+    record.rate_limit_operation = "decision"
 
     payload = json.loads(JsonFormatter().format(record))
 
@@ -84,3 +89,6 @@ def test_json_formatter_emits_correlation_fields():
     assert payload["route"] == "/health/live"
     assert payload["status_code"] == 200
     assert payload["duration_ms"] == 1.25
+    assert payload["rate_limit_backend"] == "redis"
+    assert payload["rate_limit_policy"] == "closed"
+    assert payload["rate_limit_operation"] == "decision"

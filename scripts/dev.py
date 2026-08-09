@@ -13,6 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ENV_TEMPLATE = PROJECT_ROOT / ".env.example"
 ENV_FILE = PROJECT_ROOT / ".env"
 SECRET_PLACEHOLDER = "change_this_to_a_random_secret_key"
+RATE_LIMIT_SECRET_PLACEHOLDER = "change_this_to_a_random_rate_limit_key"
 
 
 class DevelopmentError(RuntimeError):
@@ -55,14 +56,22 @@ def ensure_env() -> bool:
         return False
 
     template = ENV_TEMPLATE.read_text(encoding="utf-8")
-    if SECRET_PLACEHOLDER not in template:
+    if (
+        SECRET_PLACEHOLDER not in template
+        or RATE_LIMIT_SECRET_PLACEHOLDER not in template
+    ):
         raise DevelopmentError(
-            ".env.example does not contain the expected SECRET_KEY placeholder."
+            ".env.example does not contain the expected secret placeholders."
         )
 
     generated_secret = secrets.token_urlsafe(48)
+    generated_rate_limit_secret = secrets.token_urlsafe(48)
     ENV_FILE.write_text(
-        template.replace(SECRET_PLACEHOLDER, generated_secret, 1),
+        template.replace(SECRET_PLACEHOLDER, generated_secret, 1).replace(
+            RATE_LIMIT_SECRET_PLACEHOLDER,
+            generated_rate_limit_secret,
+            1,
+        ),
         encoding="utf-8",
     )
     print("Created .env with a generated local SECRET_KEY.")
@@ -76,7 +85,7 @@ def setup(*, skip_docker: bool = False) -> None:
 
     if not skip_docker:
         require_docker_engine()
-        run_command(["docker", "compose", "up", "-d", "--wait", "postgres"])
+        run_command(["docker", "compose", "up", "-d", "--wait", "postgres", "redis"])
 
     run_command(["uv", "run", "alembic", "upgrade", "head"])
     print("\nSetup complete. Start the API with: python scripts/dev.py serve")
@@ -104,9 +113,9 @@ def migrate() -> None:
     run_command(["uv", "run", "alembic", "upgrade", "head"])
 
 
-def database_up() -> None:
+def services_up() -> None:
     require_docker_engine()
-    run_command(["docker", "compose", "up", "-d", "--wait", "postgres"])
+    run_command(["docker", "compose", "up", "-d", "--wait", "postgres", "redis"])
 
 
 def database_down() -> None:
@@ -136,16 +145,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     setup_parser = subparsers.add_parser(
         "setup",
-        help="Create .env, install dependencies, start PostgreSQL, and migrate.",
+        help="Create .env, install dependencies, start services, and migrate.",
     )
     setup_parser.add_argument(
         "--skip-docker",
         action="store_true",
-        help="Use the DATABASE_URL in .env without starting Docker Compose.",
+        help="Use dependency URLs in .env without starting Docker Compose.",
     )
     subparsers.add_parser("serve", help="Run the API locally with auto-reload.")
     subparsers.add_parser("migrate", help="Apply all database migrations.")
-    subparsers.add_parser("db-up", help="Start and wait for local PostgreSQL.")
+    subparsers.add_parser(
+        "db-up", help="Start and wait for local PostgreSQL and Redis."
+    )
     subparsers.add_parser("db-down", help="Stop local Compose services.")
     subparsers.add_parser("check", help="Run the complete CI-equivalent quality gate.")
     return parser
@@ -156,7 +167,7 @@ def main(argv: list[str] | None = None) -> int:
     actions = {
         "serve": serve,
         "migrate": migrate,
-        "db-up": database_up,
+        "db-up": services_up,
         "db-down": database_down,
         "check": check,
     }

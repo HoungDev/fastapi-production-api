@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from app.api.v1.admin import router as admin_router
@@ -15,6 +17,7 @@ from app.auth.login import router as login_router
 from app.auth.register import router as register_router
 from app.core.config import settings
 from app.core.logging import setup_logging
+from app.core.redis import close_redis_client
 from app.exceptions.handlers import register_exception_handlers
 from app.middlewares.cors import setup_cors
 from app.middlewares.rate_limit import setup_rate_limit
@@ -23,6 +26,12 @@ from app.middlewares.security_headers import setup_security_headers
 from fastapi_production_api import __version__
 
 setup_logging()
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    yield
+    await close_redis_client()
 
 
 app = FastAPI(
@@ -44,6 +53,7 @@ Security-focused backend foundation with:
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
 
 

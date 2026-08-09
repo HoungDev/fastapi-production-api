@@ -34,12 +34,22 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:8.2-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     env:
       DATABASE_URL: postgresql+psycopg://fastapi_user:fastapi_password@localhost:5432/fastapi_test
       SECRET_KEY: ci-only-secret-key-with-at-least-32-bytes
       JWT_AUDIENCE: fastapi-client
       JWT_ISSUER: fastapi-production-api
+      REDIS_TEST_URL: redis://localhost:6379/15
 
     steps:
       - name: Check out repository
