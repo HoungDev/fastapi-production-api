@@ -55,6 +55,31 @@ curl --request POST http://127.0.0.1:8000/auth/email-verification/confirm \
 Successful confirmation is single use. Expired, consumed, unknown, and
 wrong-purpose tokens all receive the same generic `400` response.
 
+## Reset a forgotten password
+
+Password recovery is available only for active accounts with a verified email,
+but the request endpoint always returns the same `202` response. This prevents
+clients from discovering which accounts exist:
+
+```bash
+curl --request POST http://127.0.0.1:8000/auth/password-reset/request \
+  --header "Content-Type: application/json" \
+  --data '{"email":"alice@example.com"}'
+```
+
+The reset email contains an opaque, time-limited token. Submit it with a new
+password of at least 12 characters and no more than 72 UTF-8 bytes:
+
+```bash
+curl --request POST http://127.0.0.1:8000/auth/password-reset/confirm \
+  --header "Content-Type: application/json" \
+  --data '{"token":"paste-token-from-reset-link","new_password":"replace-with-a-long-new-password"}'
+```
+
+A successful reset consumes all outstanding password-reset tokens and revokes
+every refresh token for the account. It does not issue a new session. Existing
+JWT access tokens are stateless and remain valid until their configured expiry.
+
 ## Log in
 
 The login endpoint follows the OAuth2 password form convention, so its body is
@@ -194,6 +219,10 @@ Invoke-RestMethod -Uri "$baseUrl/auth/me" -Headers $headers
 $rotated = Invoke-RestMethod -Method Post -Uri "$baseUrl/auth/refresh" `
   -ContentType "application/json" `
   -Body (@{ refresh_token = $tokens.refresh_token } | ConvertTo-Json)
+
+Invoke-RestMethod -Method Post -Uri "$baseUrl/auth/password-reset/request" `
+  -ContentType "application/json" `
+  -Body '{"email":"alice@example.com"}'
 ```
 
 ## Error response conventions

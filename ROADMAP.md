@@ -45,8 +45,8 @@ Status: released
 
 Status: planned
 
-- Email verification (in progress)
-- Password reset flow
+- Email verification (completed)
+- Password reset flow (in progress)
 - OAuth provider examples
 - Multi-factor authentication foundation
 - Session and device management

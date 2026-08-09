@@ -85,6 +85,12 @@ the response omits internal details.
 7. Confirmation locks and atomically consumes the scoped token while setting
    `email_verified_at`. Expiry, replay, purpose, and current-email checks occur
    before the transaction commits.
+8. Password-reset requests reuse the account-action token table with a distinct
+   purpose and only accept active, verified email identities without revealing
+   eligibility to the caller.
+9. Reset confirmation locks both token and user, updates the password hash,
+   consumes outstanding reset tokens, and revokes every refresh token in one
+   transaction. It creates no replacement session.
 
 Refresh-token rotation limits replay. Access tokens are stateless and remain
 valid until expiration, so clients must discard them on logout and deployments
@@ -143,9 +149,11 @@ Run `python scripts/dev.py check` before review.
 ## Intentional limitations
 
 The current rate limiter is process local, refresh-token persistence and SMTP
-delivery are synchronous, and the repository does not include MFA, password
-reset, a distributed cache, or a production container image. SMTP acceptance
-is not a durable delivery guarantee; applications requiring that guarantee
-should add a transactional outbox and worker. These are explicit roadmap items
-rather than hidden production claims. See [ROADMAP.md](ROADMAP.md) and
-[DEPLOYMENT.md](DEPLOYMENT.md) before adopting the foundation.
+delivery are synchronous, and the repository does not include MFA, immediate
+JWT revocation, a distributed cache, or a production container image. Password
+reset revokes refresh tokens, but existing stateless access tokens remain valid
+until expiry. SMTP acceptance is not a durable delivery guarantee; applications
+requiring that guarantee should add a transactional outbox and worker. These
+are explicit roadmap items rather than hidden production claims. See
+[ROADMAP.md](ROADMAP.md) and [DEPLOYMENT.md](DEPLOYMENT.md) before adopting the
+foundation.
