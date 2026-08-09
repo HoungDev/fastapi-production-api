@@ -14,6 +14,8 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Monitoring, alerting, multi-worker metrics, and troubleshooting guidance
 - Branch-aware test coverage reporting with a 90% CI gate and XML artifact
 - Expanded admin, CORS, exception, rollback, refresh-token, and rate-limit tests
+- Cross-platform setup, database, server, migration, and quality-gate commands
+- Local development workflow and troubleshooting guide
 
 ## [1.0.1] - 2026-08-08
 

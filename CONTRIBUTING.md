@@ -29,19 +29,13 @@ are ready for community implementation.
 ```bash
 git clone https://github.com/HoungDev/fastapi-production-api.git
 cd fastapi-production-api
-cp .env.example .env
-docker compose up -d postgres
-uv sync --locked --all-groups
-uv run alembic upgrade head
+python scripts/dev.py setup
 ```
 
-On PowerShell, use `Copy-Item .env.example .env` instead of `cp`.
-
-Generate a development secret and place it in `.env`:
-
-```bash
-uv run python -c "import secrets; print(secrets.token_urlsafe(48))"
-```
+The setup helper is cross-platform, generates a local secret, waits for the
+database, installs locked dependencies, and applies migrations. It preserves an
+existing `.env`. Read [DEVELOPMENT.md](DEVELOPMENT.md) for external PostgreSQL,
+individual commands, and troubleshooting.
 
 ## Make a focused change
 
@@ -69,12 +63,7 @@ chore: maintain tooling or dependencies
 Before opening a pull request, run:
 
 ```bash
-uv run ruff check .
-uv run ruff format --check .
-uv run alembic upgrade head
-uv run pytest
-uv run pip-audit
-uv build
+python scripts/dev.py check
 ```
 
 The test command enforces the repository's 90% statement-and-branch coverage

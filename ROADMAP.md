@@ -39,7 +39,7 @@ Status: in progress
 - OpenTelemetry tracing example
 - Readiness and liveness semantics (completed)
 - Expanded integration tests (completed)
-- Improved local-development commands and examples
+- Improved local-development commands and examples (completed)
 
 ## v1.2 — Authentication lifecycle
 
