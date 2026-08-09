@@ -38,7 +38,7 @@ def login(
             detail="Invalid username or password",
         )
 
-    if not verify_password(
+    if not user.password_login_enabled or not verify_password(
         form_data.password,
         user.password,
     ):

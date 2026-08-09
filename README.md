@@ -91,6 +91,7 @@ contributor workflows, and local troubleshooting.
 - Refresh-token replay detection and device-session management
 - Verified email identities and single-use password recovery
 - Optional TOTP MFA with encrypted seeds, one-time recovery codes, and step-up claims
+- Optional provider-neutral OIDC Authorization Code login with PKCE S256
 - bcrypt password hashing
 - Current-user endpoints and role-based admin routes
 
@@ -162,6 +163,10 @@ and safe extension points.
 | `POST` | `/auth/mfa/totp/confirm` | Confirm enrollment and issue recovery codes |
 | `POST` | `/auth/mfa/challenge/verify` | Complete an MFA login challenge |
 | `GET` | `/auth/mfa/status` | Read MFA state without returning secrets |
+| `GET` | `/auth/oidc/authorize` | Begin an OIDC login transaction |
+| `GET` | `/auth/oidc/callback` | Validate the provider response and complete login/linking |
+| `POST` | `/auth/oidc/link/authorize` | Begin explicit authenticated identity linking |
+| `GET` | `/auth/oidc/identities` | List linked external identity providers |
 | `GET` | `/auth/me` | Return the authenticated user |
 | `GET` | `/admin/users` | List users as an admin |
 
@@ -204,8 +209,9 @@ the container level.
 
 - Rate limiting is stored in process memory. It is not shared across workers or
   hosts; use Redis or an API gateway for distributed enforcement.
-- OAuth/OIDC provider examples remain planned for v1.2.0. Authentication
-  lifecycle work on `main` is unreleased until the v1.2.0 tag is published.
+- Authentication lifecycle work on `main` is unreleased until the v1.2.0 tag
+  is published. OIDC support is a provider-neutral example and still requires
+  provider registration, exact redirect configuration, and threat-model review.
 - TOTP reduces password-only risk but is not phishing resistant. Prefer
   WebAuthn/passkeys when the application requires phishing-resistant MFA.
 - The provided Docker Compose service runs PostgreSQL for local development; it

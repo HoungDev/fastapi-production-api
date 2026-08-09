@@ -19,6 +19,9 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Optional TOTP MFA with encrypted seeds and replay-resistant verification
 - Hash-only, single-use recovery codes and opaque MFA login challenges
 - Access-token authentication-method and authentication-time claims for step-up hooks
+- Provider-neutral OIDC Authorization Code login with PKCE S256, state, nonce,
+  strict ID-token validation, and explicit account linking
+- Hash-only browser-bound OIDC transactions and immutable issuer/subject identities
 
 ### Changed
 
@@ -27,6 +30,8 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Login accepts a bounded device label and logout revokes the full token family
 - MFA-enabled login now requires a short-lived second-factor challenge; refresh
   tokens do not preserve recent-MFA status
+- Existing local accounts are never silently linked by matching provider email;
+  identity changes revoke refresh sessions
 
 ## [1.1.0] - 2026-08-09
 

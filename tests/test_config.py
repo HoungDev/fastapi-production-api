@@ -82,3 +82,58 @@ def test_mfa_accepts_dedicated_fernet_key():
     )
 
     assert configured.MFA_ENABLED is True
+
+
+def test_oidc_requires_complete_secure_configuration():
+    with pytest.raises(ValueError, match="OIDC_ISSUER"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            OIDC_ENABLED=True,
+            _env_file=None,
+        )
+
+
+def test_oidc_requires_pkce_transaction_key():
+    with pytest.raises(ValueError, match="valid Fernet key"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            OIDC_ENABLED=True,
+            OIDC_ISSUER="https://issuer.example",
+            OIDC_CLIENT_ID="client-id",
+            OIDC_CLIENT_SECRET="client-secret",
+            OIDC_TRANSACTION_ENCRYPTION_KEY="invalid",
+            _env_file=None,
+        )
+
+
+def test_production_oidc_requires_https_redirect():
+    with pytest.raises(ValueError, match="must use HTTPS in production"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="a" * 48,
+            ENVIRONMENT="production",
+            OIDC_ENABLED=True,
+            OIDC_ISSUER="https://issuer.example",
+            OIDC_CLIENT_ID="client-id",
+            OIDC_CLIENT_SECRET="client-secret",
+            OIDC_REDIRECT_URI="http://localhost/auth/oidc/callback",
+            OIDC_TRANSACTION_ENCRYPTION_KEY=Fernet.generate_key().decode("ascii"),
+            _env_file=None,
+        )
+
+
+def test_oidc_rejects_symmetric_id_token_algorithms():
+    with pytest.raises(ValueError, match="asymmetric signing algorithms"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            OIDC_ENABLED=True,
+            OIDC_ISSUER="https://issuer.example",
+            OIDC_CLIENT_ID="client-id",
+            OIDC_CLIENT_SECRET="client-secret",
+            OIDC_ALLOWED_ALGORITHMS="HS256",
+            OIDC_TRANSACTION_ENCRYPTION_KEY=Fernet.generate_key().decode("ascii"),
+            _env_file=None,
+        )

@@ -47,7 +47,7 @@ Status: in progress
 
 - Email verification (completed)
 - Password reset flow (completed)
-- OAuth/OIDC Authorization Code examples with PKCE (planned)
+- OAuth/OIDC Authorization Code examples with PKCE (completed)
 - TOTP MFA, recovery codes, and step-up hooks (completed)
 - Session and device management (completed)
 

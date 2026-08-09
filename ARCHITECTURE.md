@@ -105,6 +105,15 @@ the response omits internal details.
     Access tokens record authentication methods (`amr`) and time (`auth_time`);
     refresh-issued access tokens use `amr=["refresh"]` and cannot satisfy recent
     MFA step-up checks.
+14. OIDC authorization creates a short-lived database transaction containing
+    hashes of `state`, nonce, and browser binding plus an encrypted PKCE verifier.
+    The authorization request always uses Authorization Code and PKCE S256.
+15. The callback validates browser binding, discovery issuer, ID-token signature,
+    algorithm, issuer, audience, authorized party, lifetime, subject, and nonce
+    before consuming the transaction and issuing a local device session.
+16. External identities use immutable `(issuer, subject)` keys. Matching email
+    never links an existing account; linking requires a recent authenticated
+    local session. Identity changes revoke refresh sessions.
 
 Refresh-token families detect replay and make device-level revocation possible.
 Access tokens are stateless and remain valid until expiration, so clients must
@@ -144,8 +153,8 @@ metrics, alerts, and troubleshooting.
 Settings come from environment variables and `.env`; process environment values
 take precedence. Production validation rejects debug mode and short or known
 placeholder secrets. SMTP delivery is opt-in and requires a host and sender;
-disabled delivery does not create unreachable tokens. MFA uses a dedicated
-encryption key rather than the JWT signing secret. CORS origins, proxy
+disabled delivery does not create unreachable tokens. MFA and OIDC transaction
+data use dedicated encryption keys rather than the JWT signing secret. CORS origins, proxy
 trust, metrics exposure, database permissions, and secret storage remain
 deployment responsibilities.
 

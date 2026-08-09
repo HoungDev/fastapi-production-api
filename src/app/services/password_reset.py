@@ -103,6 +103,7 @@ def confirm_password_reset(
 
     try:
         user.password = new_password_hash
+        user.password_login_enabled = True
         db.execute(
             update(AccountActionToken)
             .where(
