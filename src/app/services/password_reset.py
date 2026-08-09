@@ -118,7 +118,11 @@ def confirm_password_reset(
                 RefreshToken.user_id == user.id,
                 RefreshToken.revoked.is_(False),
             )
-            .values(revoked=True)
+            .values(
+                revoked=True,
+                revoked_at=now,
+                revocation_reason="password_reset",
+            )
         )
         db.commit()
     except Exception:

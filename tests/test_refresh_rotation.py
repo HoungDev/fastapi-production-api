@@ -31,6 +31,7 @@ def test_refresh_token_rotation():
 
         db.add(db_token)
         db.commit()
+        family_id = db_token.family_id
 
         access_token, new_token = refresh_access_token(
             old_token,
@@ -47,6 +48,14 @@ def test_refresh_token_rotation():
         )
 
         assert old_record.revoked is True
+        assert old_record.revocation_reason == "rotated"
+
+        new_record = (
+            db.query(RefreshToken)
+            .filter(RefreshToken.token == hash_refresh_token(new_token))
+            .first()
+        )
+        assert new_record.family_id == family_id
 
         second_old_token = None
 
@@ -60,6 +69,9 @@ def test_refresh_token_rotation():
             second_old_token = error
 
         assert second_old_token is not None
+        db.refresh(new_record)
+        assert new_record.revoked is True
+        assert new_record.revocation_reason == "reuse_detected"
 
     finally:
         db.close()

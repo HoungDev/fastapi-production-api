@@ -7,6 +7,7 @@ from app.api.v1.health import router as health_router
 from app.api.v1.me import router as me_router
 from app.api.v1.metrics import router as metrics_router
 from app.api.v1.password_reset import router as password_reset_router
+from app.api.v1.sessions import router as sessions_router
 from app.api.v1.users import router as users_router
 from app.auth.login import router as login_router
 from app.auth.register import router as register_router
@@ -63,6 +64,7 @@ app.include_router(register_router)
 app.include_router(auth_router)
 app.include_router(email_verification_router)
 app.include_router(password_reset_router)
+app.include_router(sessions_router)
 app.include_router(me_router)
 app.include_router(admin_router)
 

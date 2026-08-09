@@ -88,6 +88,7 @@ form encoded rather than JSON:
 ```bash
 curl --request POST http://127.0.0.1:8000/login/ \
   --header "Content-Type: application/x-www-form-urlencoded" \
+  --header "X-Device-Name: Work laptop" \
   --data-urlencode "username=alice" \
   --data-urlencode "password=replace-this-password"
 ```
@@ -110,7 +111,8 @@ REFRESH_TOKEN="paste-refresh-token"
 ```
 
 Access tokens are JWTs and are short lived. Refresh tokens are opaque secrets;
-the database stores only their hashes.
+the database stores only their hashes. Each login creates a separate device
+session, and refresh-token rotation remains inside that session family.
 
 ## Read the current user
 
@@ -152,7 +154,38 @@ curl --request POST http://127.0.0.1:8000/auth/logout \
 ```
 
 Logout revokes the refresh token. Existing access tokens remain valid until
-their configured expiration; clients should discard both tokens locally.
+their configured expiration; clients should discard both tokens locally. The
+server revokes the submitted token's complete rotation family.
+
+## Manage device sessions
+
+List active refresh-token families for the authenticated user:
+
+```bash
+curl http://127.0.0.1:8000/auth/sessions \
+  --header "Authorization: Bearer ${ACCESS_TOKEN}"
+```
+
+The response contains a server-generated session ID, bounded device label, and
+created/last-used/expiry timestamps. It never contains raw tokens, token hashes,
+or IP addresses. Revoke one family idempotently:
+
+```bash
+SESSION_ID="paste-session-id"
+curl --request DELETE "http://127.0.0.1:8000/auth/sessions/${SESSION_ID}" \
+  --header "Authorization: Bearer ${ACCESS_TOKEN}"
+```
+
+Revoke every refresh-token session:
+
+```bash
+curl --request DELETE http://127.0.0.1:8000/auth/sessions \
+  --header "Authorization: Bearer ${ACCESS_TOKEN}"
+```
+
+Replaying a refresh token already consumed by rotation revokes the live token
+in that family. Session revocation does not immediately invalidate stateless
+JWT access tokens; they remain valid until their configured expiry.
 
 ## Call an admin endpoint
 

@@ -77,8 +77,10 @@ the response omits internal details.
    database, so deleted users and role changes take effect without waiting for a
    new access token.
 4. `POST /auth/refresh` validates the stored token, rejects revoked or expired
-   records, revokes the old token, and commits a replacement token atomically.
-5. `POST /auth/logout` revokes the submitted refresh token.
+   records, locks and revokes the old token, and commits a replacement in the
+   same server-generated family. Replay of a rotated token revokes the family's
+   live descendant.
+5. `POST /auth/logout` revokes the submitted refresh-token family.
 6. Registration may attach a normalized email identity. Verification requests
    invalidate older outstanding tokens, persist only a SHA-256 token hash, and
    deliver the raw token through the configured SMTP boundary.
@@ -91,10 +93,13 @@ the response omits internal details.
 9. Reset confirmation locks both token and user, updates the password hash,
    consumes outstanding reset tokens, and revokes every refresh token in one
    transaction. It creates no replacement session.
+10. Authenticated session endpoints aggregate active refresh-token families and
+    allow idempotent revocation of one or all families while filtering every
+    operation by current user ownership.
 
-Refresh-token rotation limits replay. Access tokens are stateless and remain
-valid until expiration, so clients must discard them on logout and deployments
-must protect the signing secret.
+Refresh-token families detect replay and make device-level revocation possible.
+Access tokens are stateless and remain valid until expiration, so clients must
+discard them on logout and deployments must protect the signing secret.
 
 ## Authorization model
 
