@@ -1,4 +1,5 @@
 from typing import Literal, Self
+from urllib.parse import urlsplit
 
 from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -53,6 +54,32 @@ class Settings(BaseSettings):
 
     MFA_STEP_UP_MAX_AGE_MINUTES: int = 10
 
+    OIDC_ENABLED: bool = False
+
+    OIDC_ISSUER: str = ""
+
+    OIDC_CLIENT_ID: str = ""
+
+    OIDC_CLIENT_SECRET: SecretStr = SecretStr("")
+
+    OIDC_REDIRECT_URI: str = "http://localhost:8000/auth/oidc/callback"
+
+    OIDC_SCOPES: str = "openid email profile"
+
+    OIDC_ALLOWED_ALGORITHMS: str = "RS256"
+
+    OIDC_TOKEN_ENDPOINT_AUTH_METHOD: Literal[
+        "client_secret_basic", "client_secret_post"
+    ] = "client_secret_basic"
+
+    OIDC_TRANSACTION_ENCRYPTION_KEY: SecretStr = SecretStr("")
+
+    OIDC_TRANSACTION_EXPIRE_MINUTES: int = 5
+
+    OIDC_RECENT_AUTH_MAX_AGE_MINUTES: int = 10
+
+    OIDC_HTTP_TIMEOUT_SECONDS: float = 5.0
+
     SMTP_HOST: str = ""
 
     SMTP_PORT: int = 587
@@ -79,6 +106,74 @@ class Settings(BaseSettings):
                     "MFA_ENCRYPTION_KEY must be a valid Fernet key when MFA is enabled"
                 ) from exc
 
+        if self.OIDC_ENABLED:
+            from cryptography.fernet import Fernet
+
+            required = (
+                self.OIDC_ISSUER,
+                self.OIDC_CLIENT_ID,
+                self.OIDC_CLIENT_SECRET.get_secret_value(),
+            )
+            if not all(required):
+                raise ValueError(
+                    "OIDC_ISSUER, OIDC_CLIENT_ID, and OIDC_CLIENT_SECRET are "
+                    "required when OIDC is enabled"
+                )
+            if "openid" not in self.OIDC_SCOPES.split():
+                raise ValueError("OIDC_SCOPES must include openid")
+            if not self.OIDC_ALLOWED_ALGORITHMS.strip():
+                raise ValueError("OIDC_ALLOWED_ALGORITHMS cannot be empty")
+            allowed_algorithms = {
+                value.strip()
+                for value in self.OIDC_ALLOWED_ALGORITHMS.split(",")
+                if value.strip()
+            }
+            asymmetric_algorithms = {
+                "RS256",
+                "RS384",
+                "RS512",
+                "PS256",
+                "PS384",
+                "PS512",
+                "ES256",
+                "ES384",
+                "ES512",
+                "EdDSA",
+            }
+            if not allowed_algorithms <= asymmetric_algorithms:
+                raise ValueError(
+                    "OIDC_ALLOWED_ALGORITHMS must contain only asymmetric signing "
+                    "algorithms"
+                )
+            issuer = urlsplit(self.OIDC_ISSUER)
+            redirect = urlsplit(self.OIDC_REDIRECT_URI)
+            if (
+                issuer.scheme != "https"
+                or not issuer.netloc
+                or issuer.query
+                or issuer.fragment
+            ):
+                raise ValueError(
+                    "OIDC_ISSUER must be an HTTPS URL without query or fragment"
+                )
+            if len(self.OIDC_ISSUER.rstrip("/")) > 255:
+                raise ValueError("OIDC_ISSUER must not exceed 255 characters")
+            if not redirect.scheme or not redirect.netloc or redirect.fragment:
+                raise ValueError(
+                    "OIDC_REDIRECT_URI must be an absolute URL without fragment"
+                )
+            try:
+                Fernet(
+                    self.OIDC_TRANSACTION_ENCRYPTION_KEY.get_secret_value().encode(
+                        "ascii"
+                    )
+                )
+            except (TypeError, ValueError, UnicodeError) as exc:
+                raise ValueError(
+                    "OIDC_TRANSACTION_ENCRYPTION_KEY must be a valid Fernet key "
+                    "when OIDC is enabled"
+                ) from exc
+
         if self.EMAIL_DELIVERY_MODE == "smtp" and not (
             self.SMTP_HOST and self.SMTP_FROM
         ):
@@ -103,6 +198,9 @@ class Settings(BaseSettings):
             for url in (self.EMAIL_VERIFICATION_URL, self.PASSWORD_RESET_URL)
         ):
             raise ValueError("Email action URLs must use HTTPS in production")
+
+        if self.OIDC_ENABLED and urlsplit(self.OIDC_REDIRECT_URI).scheme != "https":
+            raise ValueError("OIDC_REDIRECT_URI must use HTTPS in production")
 
         if (
             len(self.SECRET_KEY.encode("utf-8")) < 32

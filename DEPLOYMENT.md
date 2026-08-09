@@ -86,6 +86,12 @@ EMAIL_VERIFICATION_URL=https://your-frontend.example/verify-email
 PASSWORD_RESET_URL=https://your-frontend.example/reset-password
 MFA_ENABLED=true
 MFA_ENCRYPTION_KEY=<dedicated-fernet-key>
+OIDC_ENABLED=false
+OIDC_ISSUER=https://identity-provider.example
+OIDC_CLIENT_ID=<provider-client-id>
+OIDC_CLIENT_SECRET=<provider-client-secret>
+OIDC_REDIRECT_URI=https://api.your-domain.example/auth/oidc/callback
+OIDC_TRANSACTION_ENCRYPTION_KEY=<dedicated-fernet-key>
 SMTP_HOST=smtp.example.com
 SMTP_FROM=security@your-domain.example
 ```
@@ -112,6 +118,14 @@ rotating the key and re-enrolling affected users. Never log this key, decrypted
 TOTP seeds, login challenges, or recovery codes. TOTP is replay-resistant in
 this implementation but remains susceptible to real-time phishing; use
 WebAuthn/passkeys where phishing resistance is required.
+
+Register `OIDC_REDIRECT_URI` exactly with the provider and enable OIDC only after
+verifying discovery metadata, supported signing algorithms, and PKCE S256. Use
+a second Fernet key for `OIDC_TRANSACTION_ENCRYPTION_KEY`; do not reuse the JWT
+or MFA key. The callback does not accept caller-selected redirect targets.
+Provider client secrets, codes, ID/access tokens, PKCE verifiers, state, nonce,
+and browser-binding values must not enter logs or analytics. OAuth access tokens
+alone are not user identity proof; this flow requires a validated OIDC ID token.
 
 ## 4. Apply migrations
 
@@ -141,6 +155,12 @@ The MFA migration adds nullable user enrollment fields and a separate recovery
 code table, so existing password-only accounts remain compatible. Apply it
 before enabling `MFA_ENABLED`; test downgrade only on a disposable copy because
 it removes enrollment state and recovery-code hashes.
+
+The OIDC migration marks existing users as password-login enabled, then adds
+external identities and short-lived authorization transactions. OIDC-created
+users are explicitly marked as password-login disabled until they complete the
+verified password-reset lifecycle. Test downgrade on a disposable database;
+it removes identity links and pending authorization transactions.
 
 ## Release sequence
 

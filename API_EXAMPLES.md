@@ -153,6 +153,48 @@ recovery code is single use. A refreshed access token does not retain recent
 MFA status. TOTP is not phishing resistant; prefer WebAuthn/passkeys when that
 property is required.
 
+## Sign in and link accounts with OpenID Connect
+
+After registering the exact callback URI with a provider and enabling OIDC,
+open the authorization endpoint in a browser:
+
+```bash
+curl --include http://127.0.0.1:8000/auth/oidc/authorize
+```
+
+The API returns a `303` redirect to the configured provider and sets a
+short-lived HttpOnly browser-binding cookie. The authorization request uses a
+transaction-specific `state`, nonce, and PKCE S256 challenge. The provider
+redirects the same browser to `/auth/oidc/callback`; the API validates and
+consumes the transaction before returning local access and refresh tokens.
+
+To link a provider identity to an existing account, begin from a recently
+authenticated access token:
+
+```bash
+curl --request POST --include \
+  http://127.0.0.1:8000/auth/oidc/link/authorize \
+  --header "Authorization: Bearer ${ACCESS_TOKEN}"
+```
+
+A refresh-issued access token cannot begin linking. The callback binds the
+provider's immutable issuer and subject to the authenticated user. A matching
+email never silently links an existing account. List or unlink identities with:
+
+```bash
+curl http://127.0.0.1:8000/auth/oidc/identities \
+  --header "Authorization: Bearer ${ACCESS_TOKEN}"
+
+curl --request DELETE \
+  http://127.0.0.1:8000/auth/oidc/identities/1 \
+  --header "Authorization: Bearer ${ACCESS_TOKEN}"
+```
+
+Link and unlink operations revoke refresh sessions. The last sign-in method of
+an OIDC-only account cannot be removed. If local MFA is enabled, a successful
+OIDC callback still returns an MFA challenge rather than bypassing the second
+factor.
+
 ## Read the current user
 
 ```bash

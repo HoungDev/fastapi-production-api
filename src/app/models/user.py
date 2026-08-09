@@ -25,6 +25,12 @@ class User(Base):
         nullable=False,
     )
 
+    password_login_enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        nullable=False,
+    )
+
     role: Mapped[str] = mapped_column(
         String(20),
         default="user",

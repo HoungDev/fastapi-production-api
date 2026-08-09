@@ -10,6 +10,8 @@ from app.auth.register import register
 from app.core.config import settings
 from app.schemas.user import UserCreate
 from app.services.mfa import begin_totp_enrollment, issue_mfa_login_challenge
+from app.services.oidc import begin_oidc_authorization
+from app.services.oidc_provider import OIDCMetadata
 
 
 def test_registration_rolls_back_when_commit_fails():
@@ -55,6 +57,7 @@ def test_login_rolls_back_when_refresh_token_commit_fails():
         id=123,
         username="houngdev",
         password="hashed-password",
+        password_login_enabled=True,
         mfa_enabled_at=None,
     )
     db.commit.side_effect = RuntimeError("database unavailable")
@@ -114,5 +117,35 @@ def test_mfa_enrollment_rolls_back_when_commit_fails(monkeypatch):
         pytest.raises(RuntimeError, match="database unavailable"),
     ):
         begin_totp_enrollment(user.id, "password", db)
+
+    db.rollback.assert_called_once_with()
+
+
+def test_oidc_authorization_rolls_back_when_commit_fails(monkeypatch):
+    monkeypatch.setattr(settings, "OIDC_ENABLED", True)
+    monkeypatch.setattr(settings, "OIDC_ISSUER", "https://issuer.example")
+    monkeypatch.setattr(settings, "OIDC_CLIENT_ID", "client-id")
+    monkeypatch.setattr(
+        settings,
+        "OIDC_TRANSACTION_ENCRYPTION_KEY",
+        SecretStr(Fernet.generate_key().decode("ascii")),
+    )
+    provider = MagicMock()
+    provider.discover.return_value = OIDCMetadata(
+        issuer="https://issuer.example",
+        authorization_endpoint="https://issuer.example/authorize",
+        token_endpoint="https://issuer.example/token",
+        jwks_uri="https://issuer.example/jwks",
+    )
+    db = MagicMock()
+    db.commit.side_effect = RuntimeError("database unavailable")
+
+    with pytest.raises(RuntimeError, match="database unavailable"):
+        begin_oidc_authorization(
+            db,
+            provider,
+            intent="login",
+            device_name="Test device",
+        )
 
     db.rollback.assert_called_once_with()

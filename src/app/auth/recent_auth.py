@@ -8,19 +8,14 @@ from app.auth.token_payload import TokenPayload
 from app.core.config import settings
 
 
-def require_recent_mfa(
+def require_recent_authentication(
     token: str = Depends(get_current_token),
 ) -> TokenPayload:
     payload = decode_token(token)
-    methods = set(payload.amr)
-    if (
-        payload.auth_time is None
-        or "otp" not in methods
-        or not ({"pwd", "oidc"} & methods)
-    ):
+    if payload.auth_time is None or not ({"pwd", "oidc"} & set(payload.amr)):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Recent MFA authentication required",
+            detail="Recent authentication required",
         )
 
     authenticated_at = datetime.fromtimestamp(payload.auth_time, tz=UTC)
@@ -28,10 +23,10 @@ def require_recent_mfa(
     if authenticated_at > now + timedelta(
         seconds=30
     ) or now - authenticated_at > timedelta(
-        minutes=settings.MFA_STEP_UP_MAX_AGE_MINUTES
+        minutes=settings.OIDC_RECENT_AUTH_MAX_AGE_MINUTES
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Recent MFA authentication required",
+            detail="Recent authentication required",
         )
     return payload

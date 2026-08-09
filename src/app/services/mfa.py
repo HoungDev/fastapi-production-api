@@ -30,6 +30,7 @@ from app.services.account_action_tokens import (
 from app.services.session_issuance import prepare_session_tokens
 
 MFA_LOGIN_PURPOSE = "mfa_login"
+OIDC_MFA_LOGIN_PURPOSE = "mfa_login_oidc"
 INVALID_FACTOR_DETAIL = "Invalid MFA credential"
 INVALID_CHALLENGE_DETAIL = "Invalid or expired MFA challenge"
 
@@ -291,33 +292,51 @@ def issue_mfa_login_challenge(
     device_name: str,
     db: Session,
 ) -> MFAChallengeResponse:
-    _require_available()
-    now = utc_now()
-    raw_token = generate_account_action_token()
     try:
-        db.execute(
-            update(AccountActionToken)
-            .where(
-                AccountActionToken.user_id == user.id,
-                AccountActionToken.purpose == MFA_LOGIN_PURPOSE,
-                AccountActionToken.consumed_at.is_(None),
-            )
-            .values(consumed_at=now)
-        )
-        db.add(
-            AccountActionToken(
-                user_id=user.id,
-                purpose=MFA_LOGIN_PURPOSE,
-                token_hash=hash_account_action_token(raw_token),
-                target=device_name,
-                expires_at=now
-                + timedelta(minutes=settings.MFA_CHALLENGE_EXPIRE_MINUTES),
-            )
+        response = prepare_mfa_login_challenge(
+            user,
+            device_name,
+            db,
+            primary_method="pwd",
         )
         db.commit()
     except Exception:
         db.rollback()
         raise
+    return response
+
+
+def prepare_mfa_login_challenge(
+    user: User,
+    device_name: str,
+    db: Session,
+    *,
+    primary_method: str,
+) -> MFAChallengeResponse:
+    _require_available()
+    if primary_method not in {"pwd", "oidc"}:
+        raise ValueError("Unsupported primary authentication method")
+    now = utc_now()
+    raw_token = generate_account_action_token()
+    purpose = OIDC_MFA_LOGIN_PURPOSE if primary_method == "oidc" else MFA_LOGIN_PURPOSE
+    db.execute(
+        update(AccountActionToken)
+        .where(
+            AccountActionToken.user_id == user.id,
+            AccountActionToken.purpose.in_((MFA_LOGIN_PURPOSE, OIDC_MFA_LOGIN_PURPOSE)),
+            AccountActionToken.consumed_at.is_(None),
+        )
+        .values(consumed_at=now)
+    )
+    db.add(
+        AccountActionToken(
+            user_id=user.id,
+            purpose=purpose,
+            token_hash=hash_account_action_token(raw_token),
+            target=device_name,
+            expires_at=now + timedelta(minutes=settings.MFA_CHALLENGE_EXPIRE_MINUTES),
+        )
+    )
     return MFAChallengeResponse(
         challenge_token=raw_token,
         expires_in=settings.MFA_CHALLENGE_EXPIRE_MINUTES * 60,
@@ -335,7 +354,7 @@ def verify_mfa_login_challenge(
         db.query(AccountActionToken)
         .filter(
             AccountActionToken.token_hash == hash_account_action_token(challenge_token),
-            AccountActionToken.purpose == MFA_LOGIN_PURPOSE,
+            AccountActionToken.purpose.in_((MFA_LOGIN_PURPOSE, OIDC_MFA_LOGIN_PURPOSE)),
         )
         .with_for_update()
         .first()
@@ -363,11 +382,14 @@ def verify_mfa_login_challenge(
         challenge.consumed_at = now
         if counter is not None:
             user.mfa_last_counter = counter
+        primary_method = (
+            "oidc" if challenge.purpose == OIDC_MFA_LOGIN_PURPOSE else "pwd"
+        )
         tokens = prepare_session_tokens(
             user,
             challenge.target,
             db,
-            authentication_methods=["pwd", authentication_method],
+            authentication_methods=[primary_method, authentication_method],
         )
         db.commit()
     except Exception:
