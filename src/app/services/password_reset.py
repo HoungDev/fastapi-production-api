@@ -15,6 +15,7 @@ from app.services.account_action_tokens import (
     hash_account_action_token,
     utc_now,
 )
+from app.services.outbox import PASSWORD_RESET_MESSAGE, enqueue_email_delivery
 
 PASSWORD_RESET_PURPOSE = "password_reset"
 INVALID_TOKEN_DETAIL = "Invalid or expired password reset token"
@@ -50,6 +51,16 @@ def issue_password_reset_token(
             .values(consumed_at=now)
         )
         db.add(token)
+        if settings.EMAIL_DELIVERY_MODE == "outbox":
+            enqueue_email_delivery(
+                db,
+                message_type=PASSWORD_RESET_MESSAGE,
+                recipient=email,
+                token=raw_token,
+                token_hash=token.token_hash,
+                action_url=settings.PASSWORD_RESET_URL,
+                expires_at=token.expires_at,
+            )
         db.commit()
     except Exception:
         db.rollback()

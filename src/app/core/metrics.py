@@ -43,6 +43,25 @@ RATE_LIMIT_BACKEND_ERRORS_TOTAL = Counter(
     ("backend", "operation"),
 )
 
+OUTBOX_MESSAGES_TOTAL = Counter(
+    "fastapi_production_api_outbox_messages_total",
+    "Outbox worker message outcomes.",
+    ("message_type", "outcome"),
+)
+
+OUTBOX_FAILURES_TOTAL = Counter(
+    "fastapi_production_api_outbox_failures_total",
+    "Outbox worker failures by bounded category.",
+    ("category",),
+)
+
+OUTBOX_DELIVERY_DURATION_SECONDS = Histogram(
+    "fastapi_production_api_outbox_delivery_duration_seconds",
+    "Outbox delivery duration in seconds.",
+    ("message_type",),
+    buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30),
+)
+
 
 def render_metrics() -> tuple[bytes, str]:
     if os.environ.get("PROMETHEUS_MULTIPROC_DIR"):

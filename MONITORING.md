@@ -56,6 +56,12 @@ The application exports:
   the bounded outcomes `allowed`, `blocked`, `fail_open`, or `fail_closed`
 - `fastapi_production_api_rate_limit_backend_errors_total`, labelled by backend
   and bounded operation category
+- `fastapi_production_api_outbox_messages_total`, labelled by bounded message
+  type and outcome
+- `fastapi_production_api_outbox_failures_total`, labelled by bounded failure
+  category
+- `fastapi_production_api_outbox_delivery_duration_seconds`, labelled by
+  bounded message type
 
 Route templates are used instead of raw URLs to bound label cardinality. Protect
 the endpoint with network policy, firewall rules, or an allowlist at the reverse
@@ -98,6 +104,8 @@ through proxies and include it in downstream service logs.
 - No healthy targets or no recent metric samples
 - Repeated `database_readiness_check_failed` log events
 - Redis readiness failures or sustained fail-open/fail-closed decisions
+- Old pending outbox work, growing retries/dead letters, expired leases, or no
+  active worker process
 
 Tune thresholds from measured traffic; the repository cannot choose meaningful
 service-level objectives for a specific deployment.
@@ -130,6 +138,19 @@ service-level objectives for a specific deployment.
 3. Fail-closed returns `503`; explicit fail-open continues traffic and emits a
    decision metric and structured warning.
 4. Restore Redis access. Quota enforcement resumes without restarting the API.
+
+### Outbox backlog is growing
+
+1. Inspect counts and oldest `available_at` by state without selecting
+   `payload_encrypted`.
+2. Confirm workers are running with the same database and encryption-key
+   configuration as the API.
+3. Check bounded `smtp`, `invalid_payload`, `expired`, and `worker_loop`
+   categories; logs intentionally omit provider exception text.
+4. Restore PostgreSQL/SMTP access. Pending and expired-lease work resumes
+   without restarting every worker.
+5. Dead-letter rows have already purged sensitive payloads. Ask the user to
+   request a fresh lifecycle token rather than replaying the row.
 
 ### Follow one failed request
 

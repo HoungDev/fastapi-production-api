@@ -19,7 +19,15 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.execute("UPDATE users SET email = lower(trim(email)) WHERE email IS NOT NULL")
-    op.drop_index("uq_users_email", table_name="users")
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    unique_constraints = {
+        constraint["name"] for constraint in inspector.get_unique_constraints("users")
+    }
+    if "uq_users_email" in unique_constraints:
+        op.drop_constraint("uq_users_email", "users", type_="unique")
+    else:
+        op.drop_index("uq_users_email", table_name="users")
     op.create_index(
         "uq_users_email_normalized",
         "users",

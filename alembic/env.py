@@ -10,6 +10,7 @@ from app.models import (
     ExternalIdentity,
     MFARecoveryCode,
     OIDCTransaction,
+    OutboxMessage,
     RefreshToken,
     User,
 )

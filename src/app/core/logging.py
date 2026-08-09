@@ -28,6 +28,10 @@ class JsonFormatter(logging.Formatter):
             "rate_limit_backend",
             "rate_limit_policy",
             "rate_limit_operation",
+            "outbox_message_type",
+            "outbox_attempt",
+            "outbox_event",
+            "outbox_failure_category",
         ):
             value = getattr(record, field, None)
             if value is not None:

@@ -112,6 +112,7 @@ contributor workflows, and local troubleshooting.
 - Global exception handling
 - Transaction rollback on write failures
 - In-memory or Redis-backed distributed request rate limiting
+- Optional PostgreSQL transactional outbox with horizontally scalable workers
 
 ## Architecture
 
@@ -123,6 +124,9 @@ flowchart LR
     API --> DB["SQLAlchemy"]
     DB --> Postgres[("PostgreSQL")]
     API --> Redis[("Redis quotas")]
+    API --> Outbox[("PostgreSQL outbox")]
+    Worker["Outbox workers"] --> Outbox
+    Worker --> SMTP["SMTP provider"]
     API --> Logs["JSON logs"]
     Monitor["Prometheus"] --> API
 ```
@@ -173,6 +177,21 @@ and safe extension points.
 
 The generated OpenAPI document at `/docs` is the source of truth for the full
 request and response schemas.
+
+## Durable email worker
+
+Set `EMAIL_DELIVERY_MODE=outbox`, configure SMTP, and generate a dedicated
+`OUTBOX_ENCRYPTION_KEY`. Apply migrations before starting one or more workers:
+
+```bash
+uv run fastapi-production-worker
+```
+
+Each worker uses PostgreSQL `FOR UPDATE SKIP LOCKED` leases, so processes claim
+disjoint work without holding transactions during SMTP calls. Delivery is
+at-least-once: a crash after SMTP accepts a message but before finalization may
+produce a duplicate. Terminal jobs retain safe metadata but purge encrypted
+recipients and lifecycle tokens; request a new token instead of replaying them.
 
 ## Quality checks
 

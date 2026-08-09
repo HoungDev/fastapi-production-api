@@ -12,6 +12,9 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Privacy-preserving HMAC client identifiers, atomic counters, and bounded TTLs
 - Explicit fail-closed/fail-open outage policies with readiness and metrics
 - Redis services for local Compose and CI integration coverage
+- Optional PostgreSQL transactional outbox for durable lifecycle-email delivery
+- Horizontally scalable workers with leases, retries, dead-letter handling,
+  encrypted payloads, graceful shutdown, and bounded telemetry
 
 ## [1.2.0] - 2026-08-09
 

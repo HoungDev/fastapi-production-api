@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.db.dependency import get_db
 from app.schemas.password_reset import (
     PasswordResetAccepted,
@@ -34,11 +35,11 @@ def request_password_reset(
     db: Session = Depends(get_db),
     sender: EmailSender | None = Depends(get_email_sender),
 ) -> PasswordResetAccepted:
-    if sender is None:
+    if sender is None and settings.EMAIL_DELIVERY_MODE != "outbox":
         return PasswordResetAccepted(message=ACCEPTED_MESSAGE)
 
     delivery = issue_password_reset_token(str(data.email), db)
-    if delivery is not None:
+    if delivery is not None and sender is not None:
         recipient, raw_token = delivery
         try:
             sender.send_password_reset(recipient, raw_token)

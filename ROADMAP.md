@@ -56,7 +56,7 @@ Status: released
 Status: in progress
 
 - Redis-backed rate limiting (completed)
-- Background task processing
+- Transactional outbox and background worker processing (completed)
 - Caching patterns and invalidation guidance
 - Async database evaluation and performance benchmarks
 - Load-testing examples

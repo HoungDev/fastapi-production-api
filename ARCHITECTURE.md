@@ -13,6 +13,9 @@ flowchart LR
     App --> Auth["JWT, refresh tokens, and RBAC"]
     App --> DB[("PostgreSQL")]
     App --> Redis[("Redis quotas")]
+    App --> Outbox[("PostgreSQL outbox")]
+    Worker["Outbox workers"] --> Outbox
+    Worker --> SMTP
     App --> SMTP["SMTP email provider"]
     App --> Logs["Structured JSON logs"]
     Prometheus["Prometheus"] --> Metrics["/metrics"]
@@ -35,6 +38,7 @@ when distributed rate limiting is enabled.
 | Persistence | `src/app/db/`, `src/app/models/`, `src/app/repositories/` | Sessions, ORM models, and data access |
 | Contracts | `src/app/schemas/` | Pydantic request and response models |
 | Cross-cutting HTTP behavior | `src/app/middlewares/` | CORS, headers, rate limiting, request logging |
+| Durable work | `src/app/services/outbox.py`, `src/app/services/outbox_worker.py` | Atomic enqueue, encryption, leasing, retries, and terminal handling |
 | Error boundary | `src/app/exceptions/` | Stable client errors and safe unexpected-error responses |
 | Schema evolution | `alembic/` | Ordered PostgreSQL migrations |
 | Verification | `tests/` | Endpoint, security, failure-path, and operational tests |
@@ -138,6 +142,14 @@ for schema changes.
 Production releases should run migrations once before starting new application
 workers. Do not let every worker race to apply schema changes.
 
+In transactional delivery mode, the lifecycle token and encrypted outbox row
+commit together. Workers claim due rows in short `FOR UPDATE SKIP LOCKED`
+transactions, commit leases before SMTP I/O, and condition finalization on the
+lease owner. Expired leases are recoverable. SMTP remains an external
+at-least-once boundary, so duplicate delivery is possible after ambiguous
+provider acceptance. Success and dead-letter transitions purge encrypted
+payloads.
+
 ## Observability model
 
 - `/health/live` reports process liveness without dependency checks.
@@ -148,6 +160,8 @@ workers. Do not let every worker race to apply schema changes.
 - JSON request logs carry method, normalized path, status, duration, and a
   validated correlation ID.
 - Rate-limit metrics use only bounded backend, outcome, and operation labels.
+- Outbox metrics use bounded message types, outcomes, and failure categories;
+  worker logs never include recipients, tokens, ciphertext, or provider details.
 
 Read [MONITORING.md](MONITORING.md) for scrape configuration, multi-worker
 metrics, alerts, and troubleshooting.

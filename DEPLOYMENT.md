@@ -86,7 +86,14 @@ REDIS_URL=rediss://app:<password>@redis.internal.example:6379/0
 RATE_LIMIT_BACKEND=redis
 RATE_LIMIT_KEY_SECRET=<generated-dedicated-secret>
 RATE_LIMIT_FAILURE_MODE=closed
-EMAIL_DELIVERY_MODE=smtp
+EMAIL_DELIVERY_MODE=outbox
+OUTBOX_ENCRYPTION_KEY=<dedicated-fernet-key>
+OUTBOX_BATCH_SIZE=10
+OUTBOX_LEASE_SECONDS=30
+OUTBOX_MAX_ATTEMPTS=5
+OUTBOX_BACKOFF_BASE_SECONDS=5
+OUTBOX_BACKOFF_MAX_SECONDS=300
+OUTBOX_SHUTDOWN_GRACE_SECONDS=30
 EMAIL_VERIFICATION_URL=https://your-frontend.example/verify-email
 PASSWORD_RESET_URL=https://your-frontend.example/reset-password
 MFA_ENABLED=true
@@ -179,10 +186,12 @@ A safe deployment separates schema changes from worker startup:
 1. Back up the database and verify restoration procedures.
 2. Install the reviewed release tag or immutable commit.
 3. Apply migrations once as a dedicated release step.
-4. Start or roll application workers.
-5. Wait for `/health/ready` before sending traffic.
-6. Smoke-test authentication and operational endpoints.
-7. Monitor errors, readiness, latency, and database health during rollout.
+4. Start or roll API processes.
+5. Start one or more `fastapi-production-worker` processes after the outbox
+   migration is present.
+6. Wait for `/health/ready` before sending traffic.
+7. Smoke-test authentication and operational endpoints.
+8. Monitor errors, readiness, latency, outbox backlog, and dead letters.
 
 Prefer backward-compatible expand-and-contract migrations when old and new
 workers may overlap. Application rollback does not automatically reverse a
@@ -300,6 +309,27 @@ Set `RATE_LIMIT_BACKEND=redis` for shared limits across workers or hosts. Redis
 outages are fail-closed by default; an explicitly configured fail-open policy is
 observable in logs and metrics. Roll back without data migration by selecting
 `RATE_LIMIT_BACKEND=memory`, accepting process-local quotas until Redis returns.
+
+Run durable email delivery as a separate systemd service using the same release,
+database URL, SMTP settings, and `OUTBOX_ENCRYPTION_KEY` as the API:
+
+```ini
+[Service]
+WorkingDirectory=/opt/fastapi-production-api
+EnvironmentFile=/opt/fastapi-production-api/.env
+ExecStart=/opt/fastapi-production-api/.venv/bin/fastapi-production-worker
+Restart=on-failure
+TimeoutStopSec=40
+```
+
+Scale by starting identical worker instances. `SIGTERM` stops new claims and
+allows bounded graceful completion. Delivery is at-least-once; do not advertise
+exactly-once SMTP semantics. During rollback, stop outbox-mode API writers and
+workers before deploying synchronous mode. Pending encrypted rows may remain
+for a forward recovery, but old code must not drop the outbox table. Drain
+pending jobs before rotating the encryption key; key loss makes them
+undecryptable, while key disclosure requires replacement and fresh lifecycle
+tokens.
 See [MONITORING.md](MONITORING.md) for Prometheus scraping, multi-worker metric
 aggregation, correlation IDs, alert ideas, and troubleshooting.
 See [ARCHITECTURE.md](ARCHITECTURE.md) for application trust boundaries and
@@ -318,3 +348,5 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for application trust boundaries and
 - [ ] Configure logs, metrics, alerts, and retention
 - [ ] Configure database backups and test restoration
 - [ ] Verify `/health/live`, `/health/ready`, and `/metrics` after deployment
+- [ ] Verify workers claim jobs, recover expired leases, and shut down cleanly
+- [ ] Alert on old pending jobs, retry growth, and dead-letter growth

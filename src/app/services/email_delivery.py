@@ -11,6 +11,14 @@ class EmailSender(Protocol):
 
     def send_password_reset(self, recipient: str, token: str) -> None: ...
 
+    def send_outbox(
+        self,
+        message_type: str,
+        recipient: str,
+        token: str,
+        action_url: str,
+    ) -> None: ...
+
 
 class SMTPEmailSender:
     def send_verification(self, recipient: str, token: str) -> None:
@@ -29,6 +37,35 @@ class SMTPEmailSender:
             action_url=settings.PASSWORD_RESET_URL,
             subject="Reset your password",
             instruction="Reset your password",
+        )
+
+    def send_outbox(
+        self,
+        message_type: str,
+        recipient: str,
+        token: str,
+        action_url: str,
+    ) -> None:
+        templates = {
+            "email_verification.v1": (
+                "Verify your email address",
+                "Verify your email address",
+            ),
+            "password_reset.v1": (
+                "Reset your password",
+                "Reset your password",
+            ),
+        }
+        try:
+            subject, instruction = templates[message_type]
+        except KeyError as exc:
+            raise ValueError("Unsupported outbox message type") from exc
+        self._send_action_email(
+            recipient=recipient,
+            token=token,
+            action_url=action_url,
+            subject=subject,
+            instruction=instruction,
         )
 
     def _send_action_email(

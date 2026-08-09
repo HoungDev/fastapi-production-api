@@ -52,6 +52,27 @@ Open <http://127.0.0.1:8000/docs>. To create a local user, call `POST
 /register/` from Swagger UI; the repository intentionally does not ship a
 shared demo password.
 
+## Run durable email workers
+
+Generate a dedicated Fernet key, set `EMAIL_DELIVERY_MODE=outbox`, configure
+SMTP, apply migrations, and start a worker in a second terminal:
+
+```bash
+uv run fastapi-production-worker
+```
+
+Start additional identical processes to test horizontal claims. For one
+deterministic batch without polling, use:
+
+```bash
+uv run fastapi-production-worker --once
+```
+
+Workers stop claiming on `SIGTERM`/`SIGINT`. They finish in-flight work within
+the configured grace period; abandoned leases become claimable after expiry.
+Never run workers against a database while its `OUTBOX_ENCRYPTION_KEY` is
+missing or different from the key used to enqueue pending payloads.
+
 ## Everyday commands
 
 | Command | Purpose |
@@ -75,6 +96,9 @@ $env:REDIS_TEST_URL='redis://localhost:6379/15'; uv run pytest tests/test_redis_
 
 The test database is flushed before and after these tests. Never point
 `REDIS_TEST_URL` at a shared or production Redis database.
+
+Worker concurrency tests require PostgreSQL because SQLite does not implement
+`FOR UPDATE SKIP LOCKED`. The standard CI job runs these tests on PostgreSQL.
 
 ## Typical contribution workflow
 

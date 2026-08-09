@@ -13,6 +13,7 @@ from app.services.account_action_tokens import (
     hash_account_action_token,
     utc_now,
 )
+from app.services.outbox import EMAIL_VERIFICATION_MESSAGE, enqueue_email_delivery
 
 EMAIL_VERIFICATION_PURPOSE = "email_verification"
 INVALID_TOKEN_DETAIL = "Invalid or expired verification token"
@@ -48,6 +49,16 @@ def issue_email_verification_token(
             .values(consumed_at=now)
         )
         db.add(token)
+        if settings.EMAIL_DELIVERY_MODE == "outbox":
+            enqueue_email_delivery(
+                db,
+                message_type=EMAIL_VERIFICATION_MESSAGE,
+                recipient=email,
+                token=raw_token,
+                token_hash=token.token_hash,
+                action_url=settings.EMAIL_VERIFICATION_URL,
+                expires_at=token.expires_at,
+            )
         db.commit()
     except Exception:
         db.rollback()
