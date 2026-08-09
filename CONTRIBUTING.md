@@ -77,6 +77,10 @@ uv run pip-audit
 uv build
 ```
 
+The test command enforces the repository's 90% statement-and-branch coverage
+gate. New behavior should include focused assertions for success, failure, and
+authorization paths rather than tests written only to increase the percentage.
+
 Use `uv run ruff format .` to apply the project formatter. New behavior must
 include tests. Changes to configuration, endpoints, or deployment behavior must
 also update the relevant documentation.

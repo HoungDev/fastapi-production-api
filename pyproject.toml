@@ -63,12 +63,22 @@ dev = [
     "httpx2>=2.7.0",
     "pip-audit>=2.9.0",
     "pytest>=9.1.1",
+    "pytest-cov>=7.0.0",
     "ruff>=0.12.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra"
+addopts = "-ra --cov --cov-report=term-missing --cov-fail-under=90"
+
+[tool.coverage.run]
+branch = true
+source = ["app", "fastapi_production_api"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = true
 
 [tool.ruff]
 target-version = "py313"
