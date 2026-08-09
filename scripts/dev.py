@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import secrets
 import shutil
 import subprocess
@@ -14,6 +15,7 @@ ENV_TEMPLATE = PROJECT_ROOT / ".env.example"
 ENV_FILE = PROJECT_ROOT / ".env"
 SECRET_PLACEHOLDER = "change_this_to_a_random_secret_key"
 RATE_LIMIT_SECRET_PLACEHOLDER = "change_this_to_a_random_rate_limit_key"
+OUTBOX_SECRET_PLACEHOLDER = "change_this_to_a_random_outbox_key"
 
 
 class DevelopmentError(RuntimeError):
@@ -59,6 +61,7 @@ def ensure_env() -> bool:
     if (
         SECRET_PLACEHOLDER not in template
         or RATE_LIMIT_SECRET_PLACEHOLDER not in template
+        or OUTBOX_SECRET_PLACEHOLDER not in template
     ):
         raise DevelopmentError(
             ".env.example does not contain the expected secret placeholders."
@@ -66,12 +69,17 @@ def ensure_env() -> bool:
 
     generated_secret = secrets.token_urlsafe(48)
     generated_rate_limit_secret = secrets.token_urlsafe(48)
+    generated_outbox_secret = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode(
+        "ascii"
+    )
     ENV_FILE.write_text(
-        template.replace(SECRET_PLACEHOLDER, generated_secret, 1).replace(
+        template.replace(SECRET_PLACEHOLDER, generated_secret, 1)
+        .replace(
             RATE_LIMIT_SECRET_PLACEHOLDER,
             generated_rate_limit_secret,
             1,
-        ),
+        )
+        .replace(OUTBOX_SECRET_PLACEHOLDER, generated_outbox_secret, 1),
         encoding="utf-8",
     )
     print("Created .env with a generated local SECRET_KEY.")

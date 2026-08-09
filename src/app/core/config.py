@@ -48,7 +48,23 @@ class Settings(BaseSettings):
 
     RATE_LIMIT_KEY_SECRET: SecretStr = SecretStr("")
 
-    EMAIL_DELIVERY_MODE: Literal["disabled", "smtp"] = "disabled"
+    EMAIL_DELIVERY_MODE: Literal["disabled", "smtp", "outbox"] = "disabled"
+
+    OUTBOX_ENCRYPTION_KEY: SecretStr = SecretStr("")
+
+    OUTBOX_POLL_INTERVAL_SECONDS: float = Field(default=1.0, gt=0, le=60)
+
+    OUTBOX_BATCH_SIZE: int = Field(default=10, gt=0, le=100)
+
+    OUTBOX_LEASE_SECONDS: int = Field(default=30, gt=0, le=3600)
+
+    OUTBOX_MAX_ATTEMPTS: int = Field(default=5, gt=0, le=100)
+
+    OUTBOX_BACKOFF_BASE_SECONDS: int = Field(default=5, gt=0, le=3600)
+
+    OUTBOX_BACKOFF_MAX_SECONDS: int = Field(default=300, gt=0, le=86400)
+
+    OUTBOX_SHUTDOWN_GRACE_SECONDS: int = Field(default=30, gt=0, le=3600)
 
     EMAIL_VERIFICATION_URL: str = "http://localhost:3000/verify-email"
 
@@ -130,6 +146,32 @@ class Settings(BaseSettings):
                     "the Redis rate-limit backend is enabled"
                 )
 
+        if self.EMAIL_DELIVERY_MODE == "outbox":
+            from cryptography.fernet import Fernet
+
+            try:
+                Fernet(self.OUTBOX_ENCRYPTION_KEY.get_secret_value().encode("ascii"))
+            except (TypeError, ValueError, UnicodeError) as exc:
+                raise ValueError(
+                    "OUTBOX_ENCRYPTION_KEY must be a valid Fernet key when "
+                    "transactional delivery is enabled"
+                ) from exc
+
+            if self.OUTBOX_BACKOFF_MAX_SECONDS < self.OUTBOX_BACKOFF_BASE_SECONDS:
+                raise ValueError(
+                    "OUTBOX_BACKOFF_MAX_SECONDS must be greater than or equal to "
+                    "OUTBOX_BACKOFF_BASE_SECONDS"
+                )
+            if self.OUTBOX_LEASE_SECONDS <= self.SMTP_TIMEOUT_SECONDS:
+                raise ValueError(
+                    "OUTBOX_LEASE_SECONDS must be greater than SMTP_TIMEOUT_SECONDS"
+                )
+            if self.OUTBOX_SHUTDOWN_GRACE_SECONDS < self.SMTP_TIMEOUT_SECONDS:
+                raise ValueError(
+                    "OUTBOX_SHUTDOWN_GRACE_SECONDS must be at least "
+                    "SMTP_TIMEOUT_SECONDS"
+                )
+
         if self.MFA_ENABLED:
             from cryptography.fernet import Fernet
 
@@ -208,7 +250,7 @@ class Settings(BaseSettings):
                     "when OIDC is enabled"
                 ) from exc
 
-        if self.EMAIL_DELIVERY_MODE == "smtp" and not (
+        if self.EMAIL_DELIVERY_MODE in {"smtp", "outbox"} and not (
             self.SMTP_HOST and self.SMTP_FROM
         ):
             raise ValueError(
@@ -239,7 +281,7 @@ class Settings(BaseSettings):
         if self.DEBUG:
             raise ValueError("DEBUG must be false in production")
 
-        if self.EMAIL_DELIVERY_MODE == "smtp" and not all(
+        if self.EMAIL_DELIVERY_MODE in {"smtp", "outbox"} and not all(
             url.startswith("https://")
             for url in (self.EMAIL_VERIFICATION_URL, self.PASSWORD_RESET_URL)
         ):

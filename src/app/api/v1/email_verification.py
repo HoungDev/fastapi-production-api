@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.db.dependency import get_db
 from app.schemas.email_verification import (
     EmailVerificationAccepted,
@@ -36,11 +37,11 @@ def request_email_verification(
     db: Session = Depends(get_db),
     sender: EmailSender | None = Depends(get_email_sender),
 ) -> EmailVerificationAccepted:
-    if sender is None:
+    if sender is None and settings.EMAIL_DELIVERY_MODE != "outbox":
         return EmailVerificationAccepted(message=ACCEPTED_MESSAGE)
 
     delivery = issue_email_verification_token(str(data.email), db)
-    if delivery is not None:
+    if delivery is not None and sender is not None:
         recipient, raw_token = delivery
         try:
             sender.send_verification(recipient, raw_token)

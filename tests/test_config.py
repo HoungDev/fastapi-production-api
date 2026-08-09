@@ -187,3 +187,48 @@ def test_rate_limit_numeric_settings_are_bounded():
             RATE_LIMIT_LIMIT=0,
             _env_file=None,
         )
+
+
+def test_outbox_mode_requires_complete_secure_configuration():
+    with pytest.raises(ValueError, match="OUTBOX_ENCRYPTION_KEY"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            EMAIL_DELIVERY_MODE="outbox",
+            SMTP_HOST="smtp.example.com",
+            SMTP_FROM="security@example.com",
+            OUTBOX_ENCRYPTION_KEY="not-a-fernet-key",
+            _env_file=None,
+        )
+
+
+def test_outbox_mode_accepts_valid_bounded_worker_settings():
+    configured = Settings(
+        DATABASE_URL="sqlite:///test.db",
+        SECRET_KEY="local-test-secret",
+        EMAIL_DELIVERY_MODE="outbox",
+        SMTP_HOST="smtp.example.com",
+        SMTP_FROM="security@example.com",
+        OUTBOX_ENCRYPTION_KEY=Fernet.generate_key().decode("ascii"),
+        OUTBOX_LEASE_SECONDS=20,
+        SMTP_TIMEOUT_SECONDS=10,
+        OUTBOX_SHUTDOWN_GRACE_SECONDS=10,
+        _env_file=None,
+    )
+
+    assert configured.EMAIL_DELIVERY_MODE == "outbox"
+
+
+def test_outbox_mode_rejects_unsafe_lease_and_backoff_settings():
+    with pytest.raises(ValueError, match="BACKOFF_MAX"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            EMAIL_DELIVERY_MODE="outbox",
+            SMTP_HOST="smtp.example.com",
+            SMTP_FROM="security@example.com",
+            OUTBOX_ENCRYPTION_KEY=Fernet.generate_key().decode("ascii"),
+            OUTBOX_BACKOFF_BASE_SECONDS=30,
+            OUTBOX_BACKOFF_MAX_SECONDS=10,
+            _env_file=None,
+        )

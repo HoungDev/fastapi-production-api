@@ -19,6 +19,7 @@ def configure_env_paths(monkeypatch, tmp_path: Path) -> None:
     template.write_text(
         f"SECRET_KEY={dev.SECRET_PLACEHOLDER}\n"
         f"RATE_LIMIT_KEY_SECRET={dev.RATE_LIMIT_SECRET_PLACEHOLDER}\n"
+        f"OUTBOX_ENCRYPTION_KEY={dev.OUTBOX_SECRET_PLACEHOLDER}\n"
         "DEBUG=true\n",
         encoding="utf-8",
     )
@@ -30,6 +31,7 @@ def test_ensure_env_generates_secret_without_leaving_placeholder(monkeypatch, tm
     configure_env_paths(monkeypatch, tmp_path)
     generated = iter(("generated-secret", "generated-rate-limit-secret"))
     monkeypatch.setattr(dev.secrets, "token_urlsafe", lambda _: next(generated))
+    monkeypatch.setattr(dev.secrets, "token_bytes", lambda _: b"o" * 32)
 
     created = dev.ensure_env()
 
@@ -37,6 +39,7 @@ def test_ensure_env_generates_secret_without_leaving_placeholder(monkeypatch, tm
     assert dev.ENV_FILE.read_text(encoding="utf-8") == (
         "SECRET_KEY=generated-secret\n"
         "RATE_LIMIT_KEY_SECRET=generated-rate-limit-secret\n"
+        f"OUTBOX_ENCRYPTION_KEY={dev.base64.urlsafe_b64encode(b'o' * 32).decode()}\n"
         "DEBUG=true\n"
     )
 
