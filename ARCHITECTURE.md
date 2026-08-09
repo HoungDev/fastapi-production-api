@@ -12,6 +12,7 @@ flowchart LR
     Proxy --> App["FastAPI application"]
     App --> Auth["JWT, refresh tokens, and RBAC"]
     App --> DB[("PostgreSQL")]
+    App --> Redis[("Redis quotas")]
     App --> SMTP["SMTP email provider"]
     App --> Logs["Structured JSON logs"]
     Prometheus["Prometheus"] --> Metrics["/metrics"]
@@ -20,7 +21,8 @@ flowchart LR
 
 The reverse proxy terminates TLS and controls trusted forwarding headers. The
 application owns validation, authorization, business transactions, and
-telemetry. PostgreSQL is the only required stateful dependency.
+telemetry. PostgreSQL is required; Redis becomes a required readiness dependency
+when distributed rate limiting is enabled.
 
 ## Source layout and responsibilities
 
@@ -29,7 +31,7 @@ telemetry. PostgreSQL is the only required stateful dependency.
 | Application assembly | `src/app/main.py` | Create FastAPI, register middleware and handlers, include routers |
 | HTTP routes | `src/app/api/v1/` | Parse requests, enforce dependencies, return response models |
 | Authentication | `src/app/auth/` | Password verification, JWT validation, refresh rotation, permissions |
-| Configuration | `src/app/core/` | Environment settings, logging, metrics, request context |
+| Configuration | `src/app/core/` | Environment settings, Redis lifecycle, logging, metrics, request context |
 | Persistence | `src/app/db/`, `src/app/models/`, `src/app/repositories/` | Sessions, ORM models, and data access |
 | Contracts | `src/app/schemas/` | Pydantic request and response models |
 | Cross-cutting HTTP behavior | `src/app/middlewares/` | CORS, headers, rate limiting, request logging |
@@ -139,11 +141,13 @@ workers. Do not let every worker race to apply schema changes.
 ## Observability model
 
 - `/health/live` reports process liveness without dependency checks.
-- `/health/ready` verifies database connectivity before accepting traffic.
+- `/health/ready` verifies PostgreSQL and, when configured, Redis connectivity
+  before accepting traffic.
 - `/metrics` exports bounded-label request count, status, latency, and
   in-progress metrics.
 - JSON request logs carry method, normalized path, status, duration, and a
   validated correlation ID.
+- Rate-limit metrics use only bounded backend, outcome, and operation labels.
 
 Read [MONITORING.md](MONITORING.md) for scrape configuration, multi-worker
 metrics, alerts, and troubleshooting.
@@ -154,7 +158,9 @@ Settings come from environment variables and `.env`; process environment values
 take precedence. Production validation rejects debug mode and short or known
 placeholder secrets. SMTP delivery is opt-in and requires a host and sender;
 disabled delivery does not create unreachable tokens. MFA and OIDC transaction
-data use dedicated encryption keys rather than the JWT signing secret. CORS origins, proxy
+data use dedicated encryption keys rather than the JWT signing secret. Redis
+quota keys contain only versioned HMAC identifiers and bounded fixed-window
+counters. CORS origins, proxy
 trust, metrics exposure, database permissions, and secret storage remain
 deployment responsibilities.
 
@@ -172,8 +178,10 @@ Run `python scripts/dev.py check` before review.
 
 ## Intentional limitations
 
-The current rate limiter is process local, refresh-token persistence and SMTP
-delivery are synchronous, and the repository does not include phishing-resistant
+Memory rate limiting remains available for single-process use; shared quotas
+require Redis. Redis Cluster and cross-region quota guarantees are not included.
+Refresh-token persistence and SMTP delivery are synchronous, and the repository
+does not include phishing-resistant
 MFA, immediate JWT revocation, a distributed cache, or a production container image. Password
 reset revokes refresh tokens, but existing stateless access tokens remain valid
 until expiry. SMTP acceptance is not a durable delivery guarantee; applications

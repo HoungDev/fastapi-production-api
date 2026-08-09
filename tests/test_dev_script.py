@@ -17,7 +17,9 @@ SPEC.loader.exec_module(dev)
 def configure_env_paths(monkeypatch, tmp_path: Path) -> None:
     template = tmp_path / ".env.example"
     template.write_text(
-        f"SECRET_KEY={dev.SECRET_PLACEHOLDER}\nDEBUG=true\n",
+        f"SECRET_KEY={dev.SECRET_PLACEHOLDER}\n"
+        f"RATE_LIMIT_KEY_SECRET={dev.RATE_LIMIT_SECRET_PLACEHOLDER}\n"
+        "DEBUG=true\n",
         encoding="utf-8",
     )
     monkeypatch.setattr(dev, "ENV_TEMPLATE", template)
@@ -26,13 +28,16 @@ def configure_env_paths(monkeypatch, tmp_path: Path) -> None:
 
 def test_ensure_env_generates_secret_without_leaving_placeholder(monkeypatch, tmp_path):
     configure_env_paths(monkeypatch, tmp_path)
-    monkeypatch.setattr(dev.secrets, "token_urlsafe", lambda _: "generated-secret")
+    generated = iter(("generated-secret", "generated-rate-limit-secret"))
+    monkeypatch.setattr(dev.secrets, "token_urlsafe", lambda _: next(generated))
 
     created = dev.ensure_env()
 
     assert created is True
     assert dev.ENV_FILE.read_text(encoding="utf-8") == (
-        "SECRET_KEY=generated-secret\nDEBUG=true\n"
+        "SECRET_KEY=generated-secret\n"
+        "RATE_LIMIT_KEY_SECRET=generated-rate-limit-secret\n"
+        "DEBUG=true\n"
     )
 
 
@@ -57,7 +62,7 @@ def test_setup_prepares_dependencies_database_and_migrations(monkeypatch):
 
     assert commands == [
         ["uv", "sync", "--locked", "--all-groups"],
-        ["docker", "compose", "up", "-d", "--wait", "postgres"],
+        ["docker", "compose", "up", "-d", "--wait", "postgres", "redis"],
         ["uv", "run", "alembic", "upgrade", "head"],
     ]
 
@@ -109,11 +114,11 @@ def test_database_commands_use_compose_without_deleting_data(monkeypatch):
     commands = []
     monkeypatch.setattr(dev, "run_command", commands.append)
 
-    dev.database_up()
+    dev.services_up()
     dev.database_down()
 
     assert commands == [
-        ["docker", "compose", "up", "-d", "--wait", "postgres"],
+        ["docker", "compose", "up", "-d", "--wait", "postgres", "redis"],
         ["docker", "compose", "down"],
     ]
     assert ["docker", "compose", "down", "--volumes"] not in commands

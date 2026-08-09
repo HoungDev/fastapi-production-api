@@ -53,9 +53,9 @@ Status: released
 
 ## v1.3 — Distributed workloads
 
-Status: planned
+Status: in progress
 
-- Redis-backed rate limiting
+- Redis-backed rate limiting (completed)
 - Background task processing
 - Caching patterns and invalidation guidance
 - Async database evaluation and performance benchmarks

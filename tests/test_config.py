@@ -137,3 +137,53 @@ def test_oidc_rejects_symmetric_id_token_algorithms():
             OIDC_TRANSACTION_ENCRYPTION_KEY=Fernet.generate_key().decode("ascii"),
             _env_file=None,
         )
+
+
+def test_redis_backend_requires_a_valid_url():
+    with pytest.raises(ValueError, match="REDIS_URL"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            RATE_LIMIT_BACKEND="redis",
+            REDIS_URL="https://redis.example",
+            RATE_LIMIT_KEY_SECRET="r" * 48,
+            _env_file=None,
+        )
+
+
+def test_redis_backend_requires_a_dedicated_privacy_secret():
+    redis_password = "validation-error-must-not-leak-this"
+    with pytest.raises(ValueError, match="at least 32 bytes") as exc_info:
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            RATE_LIMIT_BACKEND="redis",
+            REDIS_URL=f"redis://app:{redis_password}@localhost:6379/0",
+            RATE_LIMIT_KEY_SECRET="too-short",
+            _env_file=None,
+        )
+
+    assert redis_password not in str(exc_info.value)
+
+
+def test_production_rejects_rate_limit_placeholder_secret():
+    with pytest.raises(ValueError, match="must not use a placeholder"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="a" * 48,
+            ENVIRONMENT="production",
+            RATE_LIMIT_BACKEND="redis",
+            REDIS_URL="rediss://redis.example:6379/0",
+            RATE_LIMIT_KEY_SECRET="generate_a_secure_random_rate_limit_key",
+            _env_file=None,
+        )
+
+
+def test_rate_limit_numeric_settings_are_bounded():
+    with pytest.raises(ValueError):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            RATE_LIMIT_LIMIT=0,
+            _env_file=None,
+        )

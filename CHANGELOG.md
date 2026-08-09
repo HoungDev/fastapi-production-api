@@ -6,6 +6,13 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Optional Redis-backed fixed-window rate limiting shared across API processes
+- Privacy-preserving HMAC client identifiers, atomic counters, and bounded TTLs
+- Explicit fail-closed/fail-open outage policies with readiness and metrics
+- Redis services for local Compose and CI integration coverage
+
 ## [1.2.0] - 2026-08-09
 
 ### Added

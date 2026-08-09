@@ -37,7 +37,7 @@ security middleware, automated tests, and a release-ready GitHub workflow.
 
 - Python 3.13+
 - [uv](https://docs.astral.sh/uv/)
-- Docker, or a local PostgreSQL server
+- Docker, or reachable PostgreSQL and Redis services
 
 ### 1. Clone and configure
 
@@ -48,9 +48,9 @@ python scripts/dev.py setup
 ```
 
 The setup command creates `.env` with a generated secret, installs locked
-dependencies, starts PostgreSQL, waits for it to become healthy, and applies
-migrations. It never overwrites an existing `.env`. To use an existing
-PostgreSQL server, configure `DATABASE_URL` and add `--skip-docker`.
+dependencies, starts PostgreSQL and Redis, waits for them to become healthy, and applies
+migrations. It never overwrites an existing `.env`. To use existing dependency
+services, configure `DATABASE_URL` and `REDIS_URL`, then add `--skip-docker`.
 
 ### 2. Run
 
@@ -111,7 +111,7 @@ contributor workflows, and local troubleshooting.
 - Prometheus request count, status, latency, and in-progress metrics
 - Global exception handling
 - Transaction rollback on write failures
-- In-memory request rate limiting
+- In-memory or Redis-backed distributed request rate limiting
 
 ## Architecture
 
@@ -122,6 +122,7 @@ flowchart LR
     API --> Auth["JWT and RBAC"]
     API --> DB["SQLAlchemy"]
     DB --> Postgres[("PostgreSQL")]
+    API --> Redis[("Redis quotas")]
     API --> Logs["JSON logs"]
     Monitor["Prometheus"] --> API
 ```
@@ -148,7 +149,7 @@ and safe extension points.
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/health/live` | Process liveness; no dependency checks |
-| `GET` | `/health/ready` | Traffic readiness and database connectivity |
+| `GET` | `/health/ready` | Traffic readiness and required dependencies |
 | `GET` | `/metrics` | Prometheus metrics; restrict to monitoring networks |
 | `POST` | `/register/` | Create a user |
 | `POST` | `/login/` | Issue access and refresh tokens |
@@ -207,8 +208,8 @@ the container level.
 
 ## Known limitations
 
-- Rate limiting is stored in process memory. It is not shared across workers or
-  hosts; use Redis or an API gateway for distributed enforcement.
+- The Redis limiter targets a single Redis deployment. Redis Cluster, Sentinel,
+  Active-Active, and cross-region quota guarantees are outside this release.
 - OIDC support is a provider-neutral example and requires provider registration,
   exact redirect configuration, and application-specific threat-model review.
 - TOTP reduces password-only risk but is not phishing resistant. Prefer
