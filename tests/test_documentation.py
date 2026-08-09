@@ -32,6 +32,8 @@ DOCUMENTED_API_PATHS = {
     "/auth/email-verification/confirm",
     "/auth/email-verification/request",
     "/auth/me",
+    "/auth/password-reset/confirm",
+    "/auth/password-reset/request",
     "/auth/refresh",
     "/health/live",
     "/health/ready",

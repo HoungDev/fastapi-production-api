@@ -83,6 +83,7 @@ JWT_ISSUER=fastapi-production-api
 CORS_ORIGINS=https://your-frontend.example
 EMAIL_DELIVERY_MODE=smtp
 EMAIL_VERIFICATION_URL=https://your-frontend.example/verify-email
+PASSWORD_RESET_URL=https://your-frontend.example/reset-password
 SMTP_HOST=smtp.example.com
 SMTP_FROM=security@your-domain.example
 ```
@@ -92,6 +93,10 @@ The database user should have only the permissions required by the application.
 Keep `SMTP_PASSWORD` in the same secrets system as `SECRET_KEY`. Use an exact
 HTTPS verification URL controlled by your application, and never place raw
 verification tokens in logs, metrics, analytics, or support tickets.
+Password reset revokes all refresh tokens, but it cannot immediately invalidate
+already-issued stateless access tokens. Keep access-token lifetimes short and
+use a server-side token version or denylist if your threat model requires
+immediate revocation.
 
 ## 4. Apply migrations
 

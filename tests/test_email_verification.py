@@ -327,3 +327,30 @@ def test_smtp_sender_uses_tls_authentication_and_verification_url():
     message = smtp_context.send_message.call_args.args[0]
     assert message["To"] == "user@example.com"
     assert "https://app.example.com/verify-email?token=raw-token" in str(message)
+
+
+def test_smtp_sender_uses_password_reset_url():
+    smtp = MagicMock()
+    smtp_context = MagicMock()
+    smtp.__enter__.return_value = smtp_context
+
+    with (
+        patch("app.services.email_delivery.smtplib.SMTP", return_value=smtp),
+        patch.multiple(
+            "app.services.email_delivery.settings",
+            SMTP_HOST="smtp.example.com",
+            SMTP_PORT=587,
+            SMTP_TIMEOUT_SECONDS=10,
+            SMTP_STARTTLS=False,
+            SMTP_USERNAME="",
+            SMTP_FROM="security@example.com",
+            PASSWORD_RESET_URL="https://app.example.com/reset-password",
+        ),
+    ):
+        SMTPEmailSender().send_password_reset("user@example.com", "reset-token")
+
+    smtp_context.starttls.assert_not_called()
+    smtp_context.login.assert_not_called()
+    message = smtp_context.send_message.call_args.args[0]
+    assert message["Subject"] == "Reset your password"
+    assert "https://app.example.com/reset-password?token=reset-token" in str(message)

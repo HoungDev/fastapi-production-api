@@ -9,18 +9,45 @@ from app.core.config import settings
 class EmailSender(Protocol):
     def send_verification(self, recipient: str, token: str) -> None: ...
 
+    def send_password_reset(self, recipient: str, token: str) -> None: ...
+
 
 class SMTPEmailSender:
     def send_verification(self, recipient: str, token: str) -> None:
+        self._send_action_email(
+            recipient=recipient,
+            token=token,
+            action_url=settings.EMAIL_VERIFICATION_URL,
+            subject="Verify your email address",
+            instruction="Verify your email address",
+        )
+
+    def send_password_reset(self, recipient: str, token: str) -> None:
+        self._send_action_email(
+            recipient=recipient,
+            token=token,
+            action_url=settings.PASSWORD_RESET_URL,
+            subject="Reset your password",
+            instruction="Reset your password",
+        )
+
+    def _send_action_email(
+        self,
+        recipient: str,
+        token: str,
+        action_url: str,
+        subject: str,
+        instruction: str,
+    ) -> None:
         query = urlencode({"token": token})
-        verification_url = f"{settings.EMAIL_VERIFICATION_URL}?{query}"
+        url = f"{action_url}?{query}"
         message = EmailMessage()
-        message["Subject"] = "Verify your email address"
+        message["Subject"] = subject
         message["From"] = settings.SMTP_FROM
         message["To"] = recipient
         message.set_content(
-            "Verify your email address by opening this link:\n\n"
-            f"{verification_url}\n\n"
+            f"{instruction} by opening this link:\n\n"
+            f"{url}\n\n"
             "If you did not request this, you can ignore this email."
         )
 

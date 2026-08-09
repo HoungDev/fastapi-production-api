@@ -43,3 +43,18 @@ def test_smtp_delivery_requires_host_and_sender():
             EMAIL_DELIVERY_MODE="smtp",
             _env_file=None,
         )
+
+
+def test_production_smtp_requires_https_action_urls():
+    with pytest.raises(ValueError, match="must use HTTPS"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="a" * 48,
+            ENVIRONMENT="production",
+            EMAIL_DELIVERY_MODE="smtp",
+            SMTP_HOST="smtp.example.com",
+            SMTP_FROM="security@example.com",
+            EMAIL_VERIFICATION_URL="https://app.example.com/verify-email",
+            PASSWORD_RESET_URL="http://app.example.com/reset-password",
+            _env_file=None,
+        )

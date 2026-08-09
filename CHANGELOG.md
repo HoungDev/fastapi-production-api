@@ -12,10 +12,13 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Single-use, hashed, expiring account-action tokens for email verification
 - Enumeration-resistant verification request and atomic confirmation endpoints
 - Explicit disabled/SMTP delivery boundary and verification configuration
+- Enumeration-resistant password recovery with scoped, hashed reset tokens
+- Atomic password updates with refresh-session revocation
 
 ### Changed
 
 - Registration conflicts now return a controlled `409` response
+- SMTP delivery supports separately configured verification and reset URLs
 
 ## [1.1.0] - 2026-08-09
 

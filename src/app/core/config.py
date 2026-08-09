@@ -35,6 +35,10 @@ class Settings(BaseSettings):
 
     EMAIL_VERIFICATION_TOKEN_EXPIRE_MINUTES: int = 30
 
+    PASSWORD_RESET_URL: str = "http://localhost:3000/reset-password"
+
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 30
+
     SMTP_HOST: str = ""
 
     SMTP_PORT: int = 587
@@ -69,6 +73,12 @@ class Settings(BaseSettings):
 
         if self.DEBUG:
             raise ValueError("DEBUG must be false in production")
+
+        if self.EMAIL_DELIVERY_MODE == "smtp" and not all(
+            url.startswith("https://")
+            for url in (self.EMAIL_VERIFICATION_URL, self.PASSWORD_RESET_URL)
+        ):
+            raise ValueError("Email action URLs must use HTTPS in production")
 
         if (
             len(self.SECRET_KEY.encode("utf-8")) < 32
