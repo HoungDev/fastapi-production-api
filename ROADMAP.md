@@ -45,7 +45,7 @@ Status: released
 
 Status: planned
 
-- Email verification
+- Email verification (in progress)
 - Password reset flow
 - OAuth provider examples
 - Multi-factor authentication foundation

@@ -29,6 +29,7 @@ classifiers = [
 dependencies = [
     "alembic>=1.18.5",
     "bcrypt==4.3.0",
+    "email-validator>=2.3.0",
     "fastapi>=0.141.1",
     "gunicorn>=26.0.0",
     "psycopg[binary]>=3.3.4",

@@ -81,10 +81,17 @@ SECRET_KEY=<generated-secret>
 JWT_AUDIENCE=fastapi-client
 JWT_ISSUER=fastapi-production-api
 CORS_ORIGINS=https://your-frontend.example
+EMAIL_DELIVERY_MODE=smtp
+EMAIL_VERIFICATION_URL=https://your-frontend.example/verify-email
+SMTP_HOST=smtp.example.com
+SMTP_FROM=security@your-domain.example
 ```
 
 Prefer a managed secrets service over a file when your platform supports one.
 The database user should have only the permissions required by the application.
+Keep `SMTP_PASSWORD` in the same secrets system as `SECRET_KEY`. Use an exact
+HTTPS verification URL controlled by your application, and never place raw
+verification tokens in logs, metrics, analytics, or support tickets.
 
 ## 4. Apply migrations
 
@@ -95,6 +102,13 @@ uv run alembic upgrade head
 ```
 
 Run migrations once per release, not concurrently in every worker.
+
+When upgrading from v1.1.0, the email-verification migration normalizes existing
+non-null email addresses before adding the lifecycle table. Audit existing
+addresses for case-insensitive duplicates in staging first; the migration must
+stop rather than silently merge conflicting identities. Test both `upgrade
+head` and downgrade to revision `906770b858da` against a backup or disposable
+copy before production rollout.
 
 ## Release sequence
 

@@ -29,6 +29,8 @@ DOCUMENTED_API_PATHS = {
     "/admin/users",
     "/admin/users/{user_id}/role",
     "/auth/logout",
+    "/auth/email-verification/confirm",
+    "/auth/email-verification/request",
     "/auth/me",
     "/auth/refresh",
     "/health/live",

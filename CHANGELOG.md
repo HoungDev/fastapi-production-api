@@ -6,6 +6,17 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Optional normalized email identities during backward-compatible registration
+- Single-use, hashed, expiring account-action tokens for email verification
+- Enumeration-resistant verification request and atomic confirmation endpoints
+- Explicit disabled/SMTP delivery boundary and verification configuration
+
+### Changed
+
+- Registration conflicts now return a controlled `409` response
+
 ## [1.1.0] - 2026-08-09
 
 ### Added

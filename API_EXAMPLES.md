@@ -12,7 +12,7 @@ request and response schemas.
 ```bash
 curl --request POST http://127.0.0.1:8000/register/ \
   --header "Content-Type: application/json" \
-  --data '{"username":"alice","password":"replace-this-password"}'
+  --data '{"username":"alice","password":"replace-this-password","email":"alice@example.com"}'
 ```
 
 Example response:
@@ -21,12 +21,39 @@ Example response:
 {
   "id": 1,
   "username": "alice",
-  "role": "user"
+  "role": "user",
+  "email": "alice@example.com",
+  "email_verified_at": null
 }
 ```
 
-Usernames must be unique. Treat passwords used in examples as disposable local
+Email is optional, normalized to lowercase, and unique when supplied. Usernames
+must also be unique. Treat passwords used in examples as disposable local
 values, never production credentials.
+
+## Verify an email address
+
+Email delivery is disabled by default. After configuring SMTP, request a
+verification message with the same response for known, unknown, and already
+verified addresses:
+
+```bash
+curl --request POST http://127.0.0.1:8000/auth/email-verification/request \
+  --header "Content-Type: application/json" \
+  --data '{"email":"alice@example.com"}'
+```
+
+The email contains a time-limited opaque token. The API never returns that raw
+token. The frontend submits the token from the link:
+
+```bash
+curl --request POST http://127.0.0.1:8000/auth/email-verification/confirm \
+  --header "Content-Type: application/json" \
+  --data '{"token":"paste-token-from-verification-link"}'
+```
+
+Successful confirmation is single use. Expired, consumed, unknown, and
+wrong-purpose tokens all receive the same generic `400` response.
 
 ## Log in
 

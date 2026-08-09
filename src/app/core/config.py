@@ -1,6 +1,6 @@
-from typing import Self
+from typing import Literal, Self
 
-from pydantic import model_validator
+from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -29,8 +29,35 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: str = ""
 
+    EMAIL_DELIVERY_MODE: Literal["disabled", "smtp"] = "disabled"
+
+    EMAIL_VERIFICATION_URL: str = "http://localhost:3000/verify-email"
+
+    EMAIL_VERIFICATION_TOKEN_EXPIRE_MINUTES: int = 30
+
+    SMTP_HOST: str = ""
+
+    SMTP_PORT: int = 587
+
+    SMTP_USERNAME: str = ""
+
+    SMTP_PASSWORD: SecretStr = SecretStr("")
+
+    SMTP_FROM: str = ""
+
+    SMTP_STARTTLS: bool = True
+
+    SMTP_TIMEOUT_SECONDS: int = 10
+
     @model_validator(mode="after")
     def validate_production_settings(self) -> Self:
+        if self.EMAIL_DELIVERY_MODE == "smtp" and not (
+            self.SMTP_HOST and self.SMTP_FROM
+        ):
+            raise ValueError(
+                "SMTP_HOST and SMTP_FROM are required when SMTP delivery is enabled"
+            )
+
         if self.ENVIRONMENT.lower() != "production":
             return self
 
