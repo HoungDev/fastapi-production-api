@@ -39,6 +39,20 @@ class Settings(BaseSettings):
 
     PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 30
 
+    MFA_ENABLED: bool = False
+
+    MFA_ISSUER: str = "FastAPI Production API"
+
+    MFA_ENCRYPTION_KEY: SecretStr = SecretStr("")
+
+    MFA_ENROLLMENT_EXPIRE_MINUTES: int = 10
+
+    MFA_CHALLENGE_EXPIRE_MINUTES: int = 5
+
+    MFA_RECOVERY_CODE_COUNT: int = 10
+
+    MFA_STEP_UP_MAX_AGE_MINUTES: int = 10
+
     SMTP_HOST: str = ""
 
     SMTP_PORT: int = 587
@@ -55,6 +69,16 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> Self:
+        if self.MFA_ENABLED:
+            from cryptography.fernet import Fernet
+
+            try:
+                Fernet(self.MFA_ENCRYPTION_KEY.get_secret_value().encode("ascii"))
+            except (TypeError, ValueError, UnicodeError) as exc:
+                raise ValueError(
+                    "MFA_ENCRYPTION_KEY must be a valid Fernet key when MFA is enabled"
+                ) from exc
+
         if self.EMAIL_DELIVERY_MODE == "smtp" and not (
             self.SMTP_HOST and self.SMTP_FROM
         ):

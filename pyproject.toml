@@ -29,6 +29,7 @@ classifiers = [
 dependencies = [
     "alembic>=1.18.5",
     "bcrypt==4.3.0",
+    "cryptography>=50.0.0,<51",
     "email-validator>=2.3.0",
     "fastapi>=0.141.1",
     "gunicorn>=26.0.0",
@@ -36,6 +37,7 @@ dependencies = [
     "prometheus-client>=0.25.0",
     "pydantic-settings>=2.14.2",
     "pyjwt>=2.13.0",
+    "pyotp>=2.10.0,<3",
     "python-dotenv>=1.2.2",
     "python-multipart>=0.0.32",
     "sqlalchemy>=2.0.51",

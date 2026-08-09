@@ -43,13 +43,13 @@ Status: released
 
 ## v1.2 — Authentication lifecycle
 
-Status: planned
+Status: in progress
 
 - Email verification (completed)
 - Password reset flow (completed)
-- OAuth provider examples
-- Multi-factor authentication foundation
-- Session and device management (in progress)
+- OAuth/OIDC Authorization Code examples with PKCE (planned)
+- TOTP MFA, recovery codes, and step-up hooks (completed)
+- Session and device management (completed)
 
 ## v1.3 — Distributed workloads
 

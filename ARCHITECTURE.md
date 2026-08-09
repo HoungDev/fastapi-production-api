@@ -96,6 +96,15 @@ the response omits internal details.
 10. Authenticated session endpoints aggregate active refresh-token families and
     allow idempotent revocation of one or all families while filtering every
     operation by current user ownership.
+11. TOTP enrollment encrypts the authenticator seed with a dedicated Fernet
+    key. Confirmation stores only hashes of newly generated recovery codes.
+12. Login for an MFA-enabled account returns a short-lived, opaque challenge
+    instead of session tokens. Successful TOTP or recovery verification consumes
+    the challenge and creates the device session in one transaction.
+13. Accepted TOTP counters are recorded to reject replay in the same time step.
+    Access tokens record authentication methods (`amr`) and time (`auth_time`);
+    refresh-issued access tokens use `amr=["refresh"]` and cannot satisfy recent
+    MFA step-up checks.
 
 Refresh-token families detect replay and make device-level revocation possible.
 Access tokens are stateless and remain valid until expiration, so clients must
@@ -135,7 +144,8 @@ metrics, alerts, and troubleshooting.
 Settings come from environment variables and `.env`; process environment values
 take precedence. Production validation rejects debug mode and short or known
 placeholder secrets. SMTP delivery is opt-in and requires a host and sender;
-disabled delivery does not create unreachable tokens. CORS origins, proxy
+disabled delivery does not create unreachable tokens. MFA uses a dedicated
+encryption key rather than the JWT signing secret. CORS origins, proxy
 trust, metrics exposure, database permissions, and secret storage remain
 deployment responsibilities.
 
@@ -154,8 +164,8 @@ Run `python scripts/dev.py check` before review.
 ## Intentional limitations
 
 The current rate limiter is process local, refresh-token persistence and SMTP
-delivery are synchronous, and the repository does not include MFA, immediate
-JWT revocation, a distributed cache, or a production container image. Password
+delivery are synchronous, and the repository does not include phishing-resistant
+MFA, immediate JWT revocation, a distributed cache, or a production container image. Password
 reset revokes refresh tokens, but existing stateless access tokens remain valid
 until expiry. SMTP acceptance is not a durable delivery guarantee; applications
 requiring that guarantee should add a transactional outbox and worker. These

@@ -2,10 +2,14 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from cryptography.fernet import Fernet
+from pydantic import SecretStr
 
 from app.auth.login import login
 from app.auth.register import register
+from app.core.config import settings
 from app.schemas.user import UserCreate
+from app.services.mfa import begin_totp_enrollment, issue_mfa_login_challenge
 
 
 def test_registration_rolls_back_when_commit_fails():
@@ -51,19 +55,64 @@ def test_login_rolls_back_when_refresh_token_commit_fails():
         id=123,
         username="houngdev",
         password="hashed-password",
+        mfa_enabled_at=None,
     )
     db.commit.side_effect = RuntimeError("database unavailable")
     form_data = SimpleNamespace(username="houngdev", password="secret123")
 
     with (
         patch("app.auth.login.verify_password", return_value=True),
-        patch("app.auth.login.create_access_token", return_value="access-token"),
-        patch(
-            "app.auth.login.create_refresh_token",
-            return_value=("refresh-token", MagicMock()),
-        ),
+        patch("app.auth.login.prepare_session_tokens"),
         pytest.raises(RuntimeError, match="database unavailable"),
     ):
         login(form_data, db, "Test device")
+
+    db.rollback.assert_called_once_with()
+
+
+def test_mfa_challenge_rolls_back_when_commit_fails(monkeypatch):
+    monkeypatch.setattr(settings, "MFA_ENABLED", True)
+    monkeypatch.setattr(
+        settings,
+        "MFA_ENCRYPTION_KEY",
+        SecretStr(Fernet.generate_key().decode("ascii")),
+    )
+    db = MagicMock()
+    db.commit.side_effect = RuntimeError("database unavailable")
+    user = SimpleNamespace(id=123)
+
+    with pytest.raises(RuntimeError, match="database unavailable"):
+        issue_mfa_login_challenge(user, "Test device", db)
+
+    db.rollback.assert_called_once_with()
+
+
+def test_mfa_enrollment_rolls_back_when_commit_fails(monkeypatch):
+    monkeypatch.setattr(settings, "MFA_ENABLED", True)
+    monkeypatch.setattr(
+        settings,
+        "MFA_ENCRYPTION_KEY",
+        SecretStr(Fernet.generate_key().decode("ascii")),
+    )
+    user = SimpleNamespace(
+        id=123,
+        username="houngdev",
+        email="houngdev@example.com",
+        password="hashed-password",
+        is_active=True,
+        mfa_enabled_at=None,
+        mfa_secret_encrypted=None,
+        mfa_enrollment_created_at=None,
+        mfa_last_counter=None,
+    )
+    db = MagicMock()
+    db.query.return_value.filter.return_value.with_for_update.return_value.first.return_value = user
+    db.commit.side_effect = RuntimeError("database unavailable")
+
+    with (
+        patch("app.services.mfa.verify_password", return_value=True),
+        pytest.raises(RuntimeError, match="database unavailable"),
+    ):
+        begin_totp_enrollment(user.id, "password", db)
 
     db.rollback.assert_called_once_with()
