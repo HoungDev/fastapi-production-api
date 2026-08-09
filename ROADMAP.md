@@ -43,7 +43,7 @@ Status: released
 
 ## v1.2 — Authentication lifecycle
 
-Status: in progress
+Status: released
 
 - Email verification (completed)
 - Password reset flow (completed)
