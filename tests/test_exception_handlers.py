@@ -8,6 +8,11 @@ def create_exception_test_app() -> FastAPI:
     test_app = FastAPI()
     register_exception_handlers(test_app)
 
+    @test_app.middleware("http")
+    async def add_request_id(request, call_next):
+        request.state.request_id = "exception-test-request"
+        return await call_next(request)
+
     @test_app.get("/http-error")
     def http_error():
         raise HTTPException(status_code=409, detail="Conflict")
@@ -30,6 +35,7 @@ def test_http_exception_preserves_safe_detail():
 
     assert response.status_code == 409
     assert response.json() == {"detail": "Conflict"}
+    assert response.headers["X-Request-ID"] == "exception-test-request"
 
 
 def test_validation_error_uses_consistent_response():
@@ -39,6 +45,7 @@ def test_validation_error_uses_consistent_response():
 
     assert response.status_code == 422
     assert response.json() == {"detail": "Validation error"}
+    assert response.headers["X-Request-ID"] == "exception-test-request"
 
 
 def test_unexpected_error_does_not_leak_internal_detail():
@@ -52,3 +59,4 @@ def test_unexpected_error_does_not_leak_internal_detail():
     assert response.status_code == 500
     assert response.json() == {"detail": "Internal Server Error"}
     assert "sensitive internal detail" not in response.text
+    assert response.headers["X-Request-ID"] == "exception-test-request"

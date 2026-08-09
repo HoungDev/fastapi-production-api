@@ -171,6 +171,10 @@ uv run pip-audit
 uv build
 ```
 
+Pytest measures statement and branch coverage for the application packages and
+fails below 90%. CI also publishes `coverage.xml` as a workflow artifact for
+review and downstream reporting.
+
 CI runs against PostgreSQL 17 rather than silently substituting SQLite. It also
 verifies that the built wheel contains and can import the application.
 

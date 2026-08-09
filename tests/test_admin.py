@@ -70,6 +70,15 @@ def test_admin_can_manage_user_lifecycle():
         )
         delete_response = client.delete(f"/admin/users/{user.id}", headers=headers)
         missing_response = client.get(f"/admin/users/{user.id}", headers=headers)
+        missing_role_response = client.patch(
+            f"/admin/users/{user.id}/role",
+            headers=headers,
+            json={"role": "admin"},
+        )
+        missing_delete_response = client.delete(
+            f"/admin/users/{user.id}",
+            headers=headers,
+        )
 
         assert list_response.status_code == 200
         assert any(item["id"] == user.id for item in list_response.json())
@@ -81,5 +90,9 @@ def test_admin_can_manage_user_lifecycle():
         assert delete_response.json() == {"message": "User deleted successfully"}
         assert missing_response.status_code == 404
         assert missing_response.json() == {"detail": "User not found"}
+        assert missing_role_response.status_code == 404
+        assert missing_role_response.json() == {"detail": "User not found"}
+        assert missing_delete_response.status_code == 404
+        assert missing_delete_response.json() == {"detail": "User not found"}
     finally:
         delete_user_if_present(user.id)

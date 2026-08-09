@@ -38,7 +38,7 @@ Status: in progress
 - Prometheus-compatible application metrics (completed)
 - OpenTelemetry tracing example
 - Readiness and liveness semantics (completed)
-- Expanded integration tests
+- Expanded integration tests (completed)
 - Improved local-development commands and examples
 
 ## v1.2 — Authentication lifecycle
