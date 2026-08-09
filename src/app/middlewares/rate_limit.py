@@ -4,6 +4,16 @@ from typing import Dict, List
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+RATE_LIMIT_EXEMPT_PATHS = frozenset(
+    {
+        "/health",
+        "/health/db",
+        "/health/live",
+        "/health/ready",
+        "/metrics",
+    }
+)
+
 
 class RateLimiter:
     def __init__(
@@ -68,6 +78,9 @@ def setup_rate_limit(
         request: Request,
         call_next,
     ):
+
+        if request.url.path in RATE_LIMIT_EXEMPT_PATHS:
+            return await call_next(request)
 
         client_ip = request.client.host if request.client else "unknown"
 

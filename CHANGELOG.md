@@ -6,6 +6,13 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Dedicated liveness and database-backed readiness probes
+- Prometheus request count, status, latency, and in-progress metrics
+- Structured JSON logs with validated request correlation IDs
+- Monitoring, alerting, multi-worker metrics, and troubleshooting guidance
+
 ## [1.0.1] - 2026-08-08
 
 ### Added

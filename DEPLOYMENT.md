@@ -93,7 +93,9 @@ From another terminal:
 
 ```bash
 curl --fail http://127.0.0.1:8000/health
-curl --fail http://127.0.0.1:8000/health/db
+curl --fail http://127.0.0.1:8000/health/live
+curl --fail http://127.0.0.1:8000/health/ready
+curl --fail http://127.0.0.1:8000/metrics
 ```
 
 ## 6. Configure systemd
@@ -112,6 +114,10 @@ User=fastapi
 Group=fastapi
 WorkingDirectory=/opt/fastapi-production-api
 EnvironmentFile=/opt/fastapi-production-api/.env
+Environment=PROMETHEUS_MULTIPROC_DIR=/run/fastapi-production-api/metrics
+RuntimeDirectory=fastapi-production-api
+ExecStartPre=/usr/bin/install -d -m 0750 /run/fastapi-production-api/metrics
+ExecStartPre=/usr/bin/find /run/fastapi-production-api/metrics -type f -delete
 ExecStart=/home/fastapi/.local/bin/uv run gunicorn -c gunicorn.conf.py app.main:app
 Restart=on-failure
 RestartSec=5
@@ -146,6 +152,12 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
+
+    location = /metrics {
+        allow 10.0.0.0/8;
+        deny all;
+        proxy_pass http://127.0.0.1:8000/metrics;
+    }
 }
 ```
 
@@ -179,6 +191,8 @@ sudo systemctl restart fastapi-production-api
 
 The built-in rate limiter is process-local. For multiple workers or hosts,
 enforce distributed limits through Redis, an API gateway, or the edge proxy.
+See [MONITORING.md](MONITORING.md) for Prometheus scraping, multi-worker metric
+aggregation, correlation IDs, alert ideas, and troubleshooting.
 
 ## Release checklist
 
@@ -192,4 +206,4 @@ enforce distributed limits through Redis, an API gateway, or the edge proxy.
 - [ ] Enable HTTPS and renewal monitoring
 - [ ] Configure logs, metrics, alerts, and retention
 - [ ] Configure database backups and test restoration
-- [ ] Verify `/health` and `/health/db` after deployment
+- [ ] Verify `/health/live`, `/health/ready`, and `/metrics` after deployment
