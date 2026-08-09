@@ -209,9 +209,8 @@ the container level.
 
 - Rate limiting is stored in process memory. It is not shared across workers or
   hosts; use Redis or an API gateway for distributed enforcement.
-- Authentication lifecycle work on `main` is unreleased until the v1.2.0 tag
-  is published. OIDC support is a provider-neutral example and still requires
-  provider registration, exact redirect configuration, and threat-model review.
+- OIDC support is a provider-neutral example and requires provider registration,
+  exact redirect configuration, and application-specific threat-model review.
 - TOTP reduces password-only risk but is not phishing resistant. Prefer
   WebAuthn/passkeys when the application requires phishing-resistant MFA.
 - The provided Docker Compose service runs PostgreSQL for local development; it
