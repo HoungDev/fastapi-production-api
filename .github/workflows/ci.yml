@@ -88,4 +88,6 @@ jobs:
       - name: Smoke-test wheel
         run: >-
           uv run --isolated --no-project --with dist/*.whl python -c
-          "from app.main import app; assert app.version == '1.0.1'"
+          "import tomllib; from app.main import app;
+          expected = tomllib.load(open('pyproject.toml', 'rb'))['project']['version'];
+          assert app.version == expected, (app.version, expected)"

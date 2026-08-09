@@ -15,13 +15,7 @@ the tag, GitHub Release, documentation, and post-release checks agree.
 ## Validate
 
 ```bash
-uv sync --locked --all-groups
-uv run ruff check .
-uv run ruff format --check .
-uv run alembic upgrade head
-uv run pytest
-uv run pip-audit
-uv build
+python scripts/dev.py check
 ```
 
 - [ ] CI passes against PostgreSQL.
@@ -33,10 +27,12 @@ uv build
 ## Publish
 
 ```bash
-git tag -a v1.0.1 -m "v1.0.1"
-git push origin v1.0.1
+VERSION=vX.Y.Z
+git tag -a "$VERSION" -m "$VERSION"
+git push origin "$VERSION"
 ```
 
+- [ ] Confirm the release commit is merged into the default branch.
 - [ ] Create a GitHub Release from the annotated tag.
 - [ ] Copy the matching changelog section into the release notes.
 - [ ] Include highlights, upgrade instructions, known limitations, and checksums
@@ -49,4 +45,5 @@ git push origin v1.0.1
 - [ ] Verify the CI and release badges.
 - [ ] Verify the Sponsor button and community links.
 - [ ] Announce the release in GitHub Discussions.
+- [ ] Close the completed release milestone.
 - [ ] Open the next milestone and move unfinished work into it.

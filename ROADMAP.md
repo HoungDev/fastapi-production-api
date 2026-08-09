@@ -20,7 +20,7 @@ Status: released
 
 ## v1.0.1 — Release readiness
 
-Status: in progress
+Status: released
 
 - Repair README and documentation rendering
 - Align package, application, and release versions
@@ -32,11 +32,10 @@ Status: in progress
 
 ## v1.1 — Observability and developer experience
 
-Status: in progress
+Status: released
 
 - Structured JSON logging with request correlation IDs (completed)
 - Prometheus-compatible application metrics (completed)
-- OpenTelemetry tracing example
 - Readiness and liveness semantics (completed)
 - Expanded integration tests (completed)
 - Improved local-development commands and examples (completed)
@@ -61,6 +60,7 @@ Status: planned
 - Caching patterns and invalidation guidance
 - Async database evaluation and performance benchmarks
 - Load-testing examples
+- OpenTelemetry tracing example
 
 ## v2.0 — Deployment patterns at scale
 
