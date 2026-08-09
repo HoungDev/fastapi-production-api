@@ -71,6 +71,16 @@ Open:
 See [DEVELOPMENT.md](DEVELOPMENT.md) for individual commands, manual setup,
 contributor workflows, and local troubleshooting.
 
+## Documentation map
+
+| Guide | Use it when you need to... |
+| --- | --- |
+| [API examples](API_EXAMPLES.md) | Register, authenticate, rotate tokens, call admin routes, and inspect operations endpoints |
+| [Architecture](ARCHITECTURE.md) | Understand module boundaries, request flow, authentication, transactions, and extension points |
+| [Local development](DEVELOPMENT.md) | Set up a checkout, run common commands, contribute, or troubleshoot locally |
+| [Deployment](DEPLOYMENT.md) | Configure a production host, release safely, terminate TLS, and operate the service |
+| [Monitoring](MONITORING.md) | Configure probes, Prometheus, multi-worker metrics, alerts, logs, and incident diagnosis |
+
 ## Included capabilities
 
 ### Authentication and authorization
@@ -124,6 +134,10 @@ fastapi-production-api/
 ├── gunicorn.conf.py        # Linux process-manager configuration
 └── pyproject.toml          # Metadata, dependencies, and tool settings
 ```
+
+Read [ARCHITECTURE.md](ARCHITECTURE.md) for the request lifecycle, source
+boundaries, authentication rotation, transaction ownership, trust boundaries,
+and safe extension points.
 
 ## API overview
 
