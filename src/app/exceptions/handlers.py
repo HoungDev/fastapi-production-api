@@ -4,7 +4,14 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from app.core.request_context import REQUEST_ID_HEADER
+
 logger = logging.getLogger("fastapi-production-api")
+
+
+def _request_id_headers(request: Request) -> dict[str, str]:
+    request_id = getattr(request.state, "request_id", None)
+    return {REQUEST_ID_HEADER: request_id} if request_id else {}
 
 
 def register_exception_handlers(
@@ -21,6 +28,7 @@ def register_exception_handlers(
             content={
                 "detail": exc.detail,
             },
+            headers=_request_id_headers(request),
         )
 
     @app.exception_handler(RequestValidationError)
@@ -39,6 +47,7 @@ def register_exception_handlers(
             content={
                 "detail": "Validation error",
             },
+            headers=_request_id_headers(request),
         )
 
     @app.exception_handler(Exception)
@@ -57,4 +66,5 @@ def register_exception_handlers(
             content={
                 "detail": "Internal Server Error",
             },
+            headers=_request_id_headers(request),
         )

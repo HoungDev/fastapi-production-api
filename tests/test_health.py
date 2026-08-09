@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock, patch
+
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -11,6 +13,47 @@ def test_health_check():
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_liveness_does_not_require_database():
+    with patch("app.api.v1.health.engine.connect") as connect:
+        response = client.get("/health/live")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+    connect.assert_not_called()
+
+
+def test_readiness_checks_database():
+    context_manager = MagicMock()
+    connection = context_manager.__enter__.return_value
+
+    with patch(
+        "app.api.v1.health.engine.connect",
+        return_value=context_manager,
+    ):
+        response = client.get("/health/ready")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ok",
+        "checks": {"database": "ok"},
+    }
+    connection.execute.assert_called_once()
+
+
+def test_readiness_returns_503_when_database_is_unavailable():
+    with patch(
+        "app.api.v1.health.engine.connect",
+        side_effect=RuntimeError("database unavailable"),
+    ):
+        response = client.get("/health/ready")
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "status": "error",
+        "checks": {"database": "unavailable"},
+    }
 
 
 def test_root_exposes_package_version():

@@ -27,7 +27,7 @@ security middleware, automated tests, and a release-ready GitHub workflow.
 | Authorization | User and admin roles with protected endpoints |
 | Database lifecycle | PostgreSQL, SQLAlchemy, and Alembic migrations |
 | API hardening | CORS, security headers, rate limiting, and error handlers |
-| Reliability | Health checks, transaction rollback, and request logging |
+| Reliability | Liveness/readiness probes, transaction rollback, and request logging |
 | Quality | Pytest, Ruff, dependency audit, and GitHub Actions CI |
 | Operations | Environment-based configuration and Gunicorn/Uvicorn guidance |
 
@@ -82,6 +82,9 @@ Open:
 - Swagger UI: <http://localhost:8000/docs>
 - ReDoc: <http://localhost:8000/redoc>
 - Health: <http://localhost:8000/health>
+- Liveness: <http://localhost:8000/health/live>
+- Readiness: <http://localhost:8000/health/ready>
+- Prometheus metrics: <http://localhost:8000/metrics>
 
 ## Included capabilities
 
@@ -98,14 +101,15 @@ Open:
 - FastAPI and Pydantic request/response models
 - PostgreSQL with SQLAlchemy ORM
 - Alembic schema migrations
-- Database and application health checks
+- Database readiness and application liveness checks
 - Environment-based settings
 
 ### Security and reliability
 
 - Configurable CORS
 - Security response headers
-- Request logging
+- Structured JSON request logging with correlation IDs
+- Prometheus request count, status, latency, and in-progress metrics
 - Global exception handling
 - Transaction rollback on write failures
 - In-memory request rate limiting
@@ -119,7 +123,8 @@ flowchart LR
     API --> Auth["JWT and RBAC"]
     API --> DB["SQLAlchemy"]
     DB --> Postgres[("PostgreSQL")]
-    API --> Logs["Application logs"]
+    API --> Logs["JSON logs"]
+    Monitor["Prometheus"] --> API
 ```
 
 ```text
@@ -139,8 +144,9 @@ fastapi-production-api/
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/health` | Application health |
-| `GET` | `/health/db` | Database connectivity |
+| `GET` | `/health/live` | Process liveness; no dependency checks |
+| `GET` | `/health/ready` | Traffic readiness and database connectivity |
+| `GET` | `/metrics` | Prometheus metrics; restrict to monitoring networks |
 | `POST` | `/register/` | Create a user |
 | `POST` | `/login/` | Issue access and refresh tokens |
 | `POST` | `/auth/refresh` | Rotate a refresh token |
@@ -180,8 +186,10 @@ uv run gunicorn -c gunicorn.conf.py app.main:app
 ```
 
 Read [DEPLOYMENT.md](DEPLOYMENT.md) for the reverse proxy, systemd, TLS, and
-deployment checklist. Container orchestration platforms should normally run one
-Uvicorn process per container and scale at the container level.
+deployment checklist, and [MONITORING.md](MONITORING.md) for probes, Prometheus,
+multi-worker metrics, alerting, and troubleshooting. Container orchestration
+platforms should normally run one Uvicorn process per container and scale at
+the container level.
 
 ## Known limitations
 

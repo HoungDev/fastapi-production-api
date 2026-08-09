@@ -32,12 +32,12 @@ Status: in progress
 
 ## v1.1 — Observability and developer experience
 
-Status: planned
+Status: in progress
 
-- Structured JSON logging with request correlation IDs
-- Prometheus-compatible application metrics
+- Structured JSON logging with request correlation IDs (completed)
+- Prometheus-compatible application metrics (completed)
 - OpenTelemetry tracing example
-- Readiness and liveness semantics
+- Readiness and liveness semantics (completed)
 - Expanded integration tests
 - Improved local-development commands and examples
 
