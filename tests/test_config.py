@@ -1,4 +1,5 @@
 import pytest
+from cryptography.fernet import Fernet
 
 from app.core.config import Settings, settings
 
@@ -58,3 +59,26 @@ def test_production_smtp_requires_https_action_urls():
             PASSWORD_RESET_URL="http://app.example.com/reset-password",
             _env_file=None,
         )
+
+
+def test_mfa_requires_valid_encryption_key_when_enabled():
+    with pytest.raises(ValueError, match="valid Fernet key"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            MFA_ENABLED=True,
+            MFA_ENCRYPTION_KEY="not-a-fernet-key",
+            _env_file=None,
+        )
+
+
+def test_mfa_accepts_dedicated_fernet_key():
+    configured = Settings(
+        DATABASE_URL="sqlite:///test.db",
+        SECRET_KEY="local-test-secret",
+        MFA_ENABLED=True,
+        MFA_ENCRYPTION_KEY=Fernet.generate_key().decode("ascii"),
+        _env_file=None,
+    )
+
+    assert configured.MFA_ENABLED is True

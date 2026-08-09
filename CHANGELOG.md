@@ -16,12 +16,17 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Atomic password updates with refresh-session revocation
 - Refresh-token families with rotation-replay detection
 - Authenticated device-session listing and idempotent family revocation
+- Optional TOTP MFA with encrypted seeds and replay-resistant verification
+- Hash-only, single-use recovery codes and opaque MFA login challenges
+- Access-token authentication-method and authentication-time claims for step-up hooks
 
 ### Changed
 
 - Registration conflicts now return a controlled `409` response
 - SMTP delivery supports separately configured verification and reset URLs
 - Login accepts a bounded device label and logout revokes the full token family
+- MFA-enabled login now requires a short-lived second-factor challenge; refresh
+  tokens do not preserve recent-MFA status
 
 ## [1.1.0] - 2026-08-09
 

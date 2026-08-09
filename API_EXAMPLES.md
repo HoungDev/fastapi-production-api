@@ -114,6 +114,45 @@ Access tokens are JWTs and are short lived. Refresh tokens are opaque secrets;
 the database stores only their hashes. Each login creates a separate device
 session, and refresh-token rotation remains inside that session family.
 
+## Enroll and use TOTP MFA
+
+MFA is disabled by default. After the operator configures `MFA_ENABLED=true`
+and a dedicated `MFA_ENCRYPTION_KEY`, an authenticated user begins enrollment:
+
+```bash
+curl --request POST http://127.0.0.1:8000/auth/mfa/totp/enroll \
+  --header "Authorization: Bearer ${ACCESS_TOKEN}" \
+  --header "Content-Type: application/json" \
+  --data '{"password":"replace-this-password"}'
+```
+
+Scan the returned `provisioning_uri`, then confirm with the current six-digit
+code. The response displays recovery codes exactly once; store them securely.
+
+```bash
+curl --request POST http://127.0.0.1:8000/auth/mfa/totp/confirm \
+  --header "Authorization: Bearer ${ACCESS_TOKEN}" \
+  --header "Content-Type: application/json" \
+  --data '{"code":"123456"}'
+```
+
+Subsequent password login returns `mfa_required` and a short-lived
+`challenge_token`, not access or refresh tokens. Complete it with either a new
+TOTP code or one unused recovery code:
+
+```bash
+curl --request POST http://127.0.0.1:8000/auth/mfa/challenge/verify \
+  --header "Content-Type: application/json" \
+  --data '{"challenge_token":"paste-opaque-challenge","code":"123456"}'
+```
+
+Use `GET /auth/mfa/status`, `POST /auth/mfa/recovery-codes/regenerate`, and
+`POST /auth/mfa/disable` for lifecycle management. Regeneration and disable
+require the current password plus a factor and revoke refresh sessions. A
+recovery code is single use. A refreshed access token does not retain recent
+MFA status. TOTP is not phishing resistant; prefer WebAuthn/passkeys when that
+property is required.
+
 ## Read the current user
 
 ```bash

@@ -84,6 +84,8 @@ CORS_ORIGINS=https://your-frontend.example
 EMAIL_DELIVERY_MODE=smtp
 EMAIL_VERIFICATION_URL=https://your-frontend.example/verify-email
 PASSWORD_RESET_URL=https://your-frontend.example/reset-password
+MFA_ENABLED=true
+MFA_ENCRYPTION_KEY=<dedicated-fernet-key>
 SMTP_HOST=smtp.example.com
 SMTP_FROM=security@your-domain.example
 ```
@@ -97,6 +99,19 @@ Password reset revokes all refresh tokens, but it cannot immediately invalidate
 already-issued stateless access tokens. Keep access-token lifetimes short and
 use a server-side token version or denylist if your threat model requires
 immediate revocation.
+
+Generate the MFA encryption key independently from the JWT signing key:
+
+```bash
+uv run python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Store `MFA_ENCRYPTION_KEY` in the deployment secrets manager and back it up.
+Losing it makes enrolled authenticator seeds unreadable; disclosure requires
+rotating the key and re-enrolling affected users. Never log this key, decrypted
+TOTP seeds, login challenges, or recovery codes. TOTP is replay-resistant in
+this implementation but remains susceptible to real-time phishing; use
+WebAuthn/passkeys where phishing resistance is required.
 
 ## 4. Apply migrations
 
@@ -121,6 +136,11 @@ accidentally joining unrelated historical tokens. Apply and roll back the
 migration on a staging copy with representative token volume; rotation now uses
 row locks and replay revocation, so the production database must support the
 same transaction behavior as PostgreSQL.
+
+The MFA migration adds nullable user enrollment fields and a separate recovery
+code table, so existing password-only accounts remain compatible. Apply it
+before enabling `MFA_ENABLED`; test downgrade only on a disposable copy because
+it removes enrollment state and recovery-code hashes.
 
 ## Release sequence
 

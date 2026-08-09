@@ -23,7 +23,7 @@ security middleware, automated tests, and a release-ready GitHub workflow.
 
 | Production concern | Included foundation |
 | --- | --- |
-| Authentication | JWT access tokens and hashed, rotating refresh tokens |
+| Authentication | JWT, rotating refresh tokens, device sessions, and optional TOTP MFA |
 | Authorization | User and admin roles with protected endpoints |
 | Database lifecycle | PostgreSQL, SQLAlchemy, and Alembic migrations |
 | API hardening | CORS, security headers, rate limiting, and error handlers |
@@ -90,6 +90,7 @@ contributor workflows, and local troubleshooting.
 - Hashed refresh tokens with rotation and revocation
 - Refresh-token replay detection and device-session management
 - Verified email identities and single-use password recovery
+- Optional TOTP MFA with encrypted seeds, one-time recovery codes, and step-up claims
 - bcrypt password hashing
 - Current-user endpoints and role-based admin routes
 
@@ -157,6 +158,10 @@ and safe extension points.
 | `DELETE` | `/auth/sessions` | Revoke all refresh-token sessions |
 | `POST` | `/auth/password-reset/request` | Request password recovery without account disclosure |
 | `POST` | `/auth/password-reset/confirm` | Consume a reset token and revoke refresh sessions |
+| `POST` | `/auth/mfa/totp/enroll` | Begin authenticated TOTP enrollment |
+| `POST` | `/auth/mfa/totp/confirm` | Confirm enrollment and issue recovery codes |
+| `POST` | `/auth/mfa/challenge/verify` | Complete an MFA login challenge |
+| `GET` | `/auth/mfa/status` | Read MFA state without returning secrets |
 | `GET` | `/auth/me` | Return the authenticated user |
 | `GET` | `/admin/users` | List users as an admin |
 
@@ -199,9 +204,10 @@ the container level.
 
 - Rate limiting is stored in process memory. It is not shared across workers or
   hosts; use Redis or an API gateway for distributed enforcement.
-- OAuth providers and MFA remain planned. Email verification, password reset,
-  and device-session management are being developed for v1.2.0 and are not part
-  of the current v1.1.0 release.
+- OAuth/OIDC provider examples remain planned for v1.2.0. Authentication
+  lifecycle work on `main` is unreleased until the v1.2.0 tag is published.
+- TOTP reduces password-only risk but is not phishing resistant. Prefer
+  WebAuthn/passkeys when the application requires phishing-resistant MFA.
 - The provided Docker Compose service runs PostgreSQL for local development; it
   does not yet build or deploy the API container.
 - Deployment defaults must be reviewed for your traffic, proxy topology,
