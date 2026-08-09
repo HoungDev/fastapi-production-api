@@ -44,36 +44,18 @@ security middleware, automated tests, and a release-ready GitHub workflow.
 ```bash
 git clone https://github.com/HoungDev/fastapi-production-api.git
 cd fastapi-production-api
-cp .env.example .env
+python scripts/dev.py setup
 ```
 
-On PowerShell, replace the last command with:
+The setup command creates `.env` with a generated secret, installs locked
+dependencies, starts PostgreSQL, waits for it to become healthy, and applies
+migrations. It never overwrites an existing `.env`. To use an existing
+PostgreSQL server, configure `DATABASE_URL` and add `--skip-docker`.
 
-```powershell
-Copy-Item .env.example .env
-```
-
-Generate a secret and assign the result to `SECRET_KEY` in `.env`:
+### 2. Run
 
 ```bash
-uv run python -c "import secrets; print(secrets.token_urlsafe(48))"
-```
-
-### 2. Start PostgreSQL and install dependencies
-
-```bash
-docker compose up -d postgres
-uv sync --locked
-```
-
-If PostgreSQL is already running, update `DATABASE_URL` in `.env` and skip the
-Docker command.
-
-### 3. Migrate and run
-
-```bash
-uv run alembic upgrade head
-uv run uvicorn app.main:app --reload
+python scripts/dev.py serve
 ```
 
 Open:
@@ -85,6 +67,9 @@ Open:
 - Liveness: <http://localhost:8000/health/live>
 - Readiness: <http://localhost:8000/health/ready>
 - Prometheus metrics: <http://localhost:8000/metrics>
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for individual commands, manual setup,
+contributor workflows, and local troubleshooting.
 
 ## Included capabilities
 
@@ -162,13 +147,7 @@ request and response schemas.
 Run the same checks used by CI:
 
 ```bash
-uv sync --locked --all-groups
-uv run ruff check .
-uv run ruff format --check .
-uv run alembic upgrade head
-uv run pytest
-uv run pip-audit
-uv build
+python scripts/dev.py check
 ```
 
 Pytest measures statement and branch coverage for the application packages and

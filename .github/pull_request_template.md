@@ -19,9 +19,7 @@
 
 <!-- List the commands and manual checks you ran. -->
 
-- [ ] `uv run ruff check .`
-- [ ] `uv run ruff format --check .`
-- [ ] `uv run pytest`
+- [ ] `python scripts/dev.py check`
 - [ ] Relevant migrations were tested
 - [ ] Documentation was updated
 
