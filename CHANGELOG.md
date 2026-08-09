@@ -16,6 +16,10 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Expanded admin, CORS, exception, rollback, refresh-token, and rate-limit tests
 - Cross-platform setup, database, server, migration, and quality-gate commands
 - Local development workflow and troubleshooting guide
+- Copy-paste API authentication, authorization, health, and metrics examples
+- Architecture guide covering request flow, security, data, and observability
+- Deployment-pattern and safe release-sequence guidance
+- Automated validation for internal documentation links
 
 ## [1.0.1] - 2026-08-08
 

@@ -40,6 +40,7 @@ Status: in progress
 - Readiness and liveness semantics (completed)
 - Expanded integration tests (completed)
 - Improved local-development commands and examples (completed)
+- API usage, architecture, and deployment examples (completed)
 
 ## v1.2 — Authentication lifecycle
 

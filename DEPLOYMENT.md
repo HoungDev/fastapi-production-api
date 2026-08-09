@@ -21,6 +21,19 @@ PostgreSQL
 For container orchestration, prefer one Uvicorn process per container and scale
 at the container level.
 
+## Choose a deployment pattern
+
+| Pattern | Process model | Best fit |
+| --- | --- | --- |
+| Single Linux host | Nginx -> Gunicorn -> Uvicorn workers | Small services with direct host operations |
+| Container platform | Load balancer -> one Uvicorn process per container | Platforms that own restarts, health probes, and horizontal scaling |
+
+This repository includes a complete single-host example below. It does not yet
+ship a production image or orchestration manifest. On a container platform, use
+the same locked install and migration rules, start the application with
+`uv run uvicorn app.main:app --host 0.0.0.0 --port 8000`, configure liveness and
+readiness separately, and expose `/metrics` only to the monitoring network.
+
 ## 1. Prepare the server
 
 Recommended baseline:
@@ -82,6 +95,22 @@ uv run alembic upgrade head
 ```
 
 Run migrations once per release, not concurrently in every worker.
+
+## Release sequence
+
+A safe deployment separates schema changes from worker startup:
+
+1. Back up the database and verify restoration procedures.
+2. Install the reviewed release tag or immutable commit.
+3. Apply migrations once as a dedicated release step.
+4. Start or roll application workers.
+5. Wait for `/health/ready` before sending traffic.
+6. Smoke-test authentication and operational endpoints.
+7. Monitor errors, readiness, latency, and database health during rollout.
+
+Prefer backward-compatible expand-and-contract migrations when old and new
+workers may overlap. Application rollback does not automatically reverse a
+database migration; document and rehearse the data-safe rollback separately.
 
 ## 5. Smoke-test the service
 
@@ -193,6 +222,8 @@ The built-in rate limiter is process-local. For multiple workers or hosts,
 enforce distributed limits through Redis, an API gateway, or the edge proxy.
 See [MONITORING.md](MONITORING.md) for Prometheus scraping, multi-worker metric
 aggregation, correlation IDs, alert ideas, and troubleshooting.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for application trust boundaries and
+[API_EXAMPLES.md](API_EXAMPLES.md) for authenticated smoke-test requests.
 
 ## Release checklist
 
