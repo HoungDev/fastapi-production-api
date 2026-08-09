@@ -64,6 +64,6 @@ def test_login_rolls_back_when_refresh_token_commit_fails():
         ),
         pytest.raises(RuntimeError, match="database unavailable"),
     ):
-        login(form_data, db)
+        login(form_data, db, "Test device")
 
     db.rollback.assert_called_once_with()

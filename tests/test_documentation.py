@@ -35,6 +35,8 @@ DOCUMENTED_API_PATHS = {
     "/auth/password-reset/confirm",
     "/auth/password-reset/request",
     "/auth/refresh",
+    "/auth/sessions",
+    "/auth/sessions/{session_id}",
     "/health/live",
     "/health/ready",
     "/login/",

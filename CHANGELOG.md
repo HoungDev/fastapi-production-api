@@ -14,11 +14,14 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Explicit disabled/SMTP delivery boundary and verification configuration
 - Enumeration-resistant password recovery with scoped, hashed reset tokens
 - Atomic password updates with refresh-session revocation
+- Refresh-token families with rotation-replay detection
+- Authenticated device-session listing and idempotent family revocation
 
 ### Changed
 
 - Registration conflicts now return a controlled `409` response
 - SMTP delivery supports separately configured verification and reset URLs
+- Login accepts a bounded device label and logout revokes the full token family
 
 ## [1.1.0] - 2026-08-09
 

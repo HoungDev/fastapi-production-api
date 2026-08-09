@@ -88,6 +88,7 @@ contributor workflows, and local troubleshooting.
 - Registration and OAuth2 password login
 - JWT issuer, audience, expiration, subject, and token-type validation
 - Hashed refresh tokens with rotation and revocation
+- Refresh-token replay detection and device-session management
 - Verified email identities and single-use password recovery
 - bcrypt password hashing
 - Current-user endpoints and role-based admin routes
@@ -151,6 +152,9 @@ and safe extension points.
 | `POST` | `/login/` | Issue access and refresh tokens |
 | `POST` | `/auth/refresh` | Rotate a refresh token |
 | `POST` | `/auth/logout` | Revoke a refresh token |
+| `GET` | `/auth/sessions` | List active device sessions |
+| `DELETE` | `/auth/sessions/{session_id}` | Revoke one device session |
+| `DELETE` | `/auth/sessions` | Revoke all refresh-token sessions |
 | `POST` | `/auth/password-reset/request` | Request password recovery without account disclosure |
 | `POST` | `/auth/password-reset/confirm` | Consume a reset token and revoke refresh sessions |
 | `GET` | `/auth/me` | Return the authenticated user |
@@ -195,9 +199,9 @@ the container level.
 
 - Rate limiting is stored in process memory. It is not shared across workers or
   hosts; use Redis or an API gateway for distributed enforcement.
-- OAuth providers, MFA, and device-session management remain planned. Email
-  verification and password reset are being developed for v1.2.0 and are not
-  part of the current v1.1.0 release.
+- OAuth providers and MFA remain planned. Email verification, password reset,
+  and device-session management are being developed for v1.2.0 and are not part
+  of the current v1.1.0 release.
 - The provided Docker Compose service runs PostgreSQL for local development; it
   does not yet build or deploy the API container.
 - Deployment defaults must be reviewed for your traffic, proxy topology,

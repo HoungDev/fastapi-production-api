@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.auth.jwt import create_access_token
 from app.auth.refresh_token import (
     create_refresh_token,
+    create_refresh_token_family_id,
     hash_refresh_token,
+    normalize_device_name,
 )
 from app.auth.security import verify_password
 from app.db.dependency import get_db
@@ -19,10 +21,18 @@ router = APIRouter(
 )
 
 
+def get_device_name(request: Request) -> str:
+    return normalize_device_name(
+        request.headers.get("X-Device-Name"),
+        request.headers.get("User-Agent"),
+    )
+
+
 @router.post("/", response_model=Token)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
+    device_name: str = Depends(get_device_name),
 ):
     user = db.query(User).filter(User.username == form_data.username).first()
 
@@ -47,8 +57,10 @@ def login(
 
     db_refresh_token = RefreshToken(
         user_id=user.id,
+        family_id=create_refresh_token_family_id(),
         token=hash_refresh_token(refresh_token),
         expires_at=expires_at,
+        device_name=device_name,
     )
 
     try:

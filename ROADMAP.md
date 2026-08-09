@@ -46,10 +46,10 @@ Status: released
 Status: planned
 
 - Email verification (completed)
-- Password reset flow (in progress)
+- Password reset flow (completed)
 - OAuth provider examples
 - Multi-factor authentication foundation
-- Session and device management
+- Session and device management (in progress)
 
 ## v1.3 — Distributed workloads
 

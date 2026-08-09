@@ -115,6 +115,13 @@ stop rather than silently merge conflicting identities. Test both `upgrade
 head` and downgrade to revision `906770b858da` against a backup or disposable
 copy before production rollout.
 
+The session-management migration assigns every pre-existing refresh token its
+own legacy family, then makes family and device metadata required. This avoids
+accidentally joining unrelated historical tokens. Apply and roll back the
+migration on a staging copy with representative token volume; rotation now uses
+row locks and replay revocation, so the production database must support the
+same transaction behavior as PostgreSQL.
+
 ## Release sequence
 
 A safe deployment separates schema changes from worker startup:
