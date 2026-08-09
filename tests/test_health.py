@@ -56,6 +56,36 @@ def test_readiness_returns_503_when_database_is_unavailable():
     }
 
 
+def test_legacy_database_health_alias_preserves_response_shape():
+    context_manager = MagicMock()
+
+    with patch(
+        "app.api.v1.health.engine.connect",
+        return_value=context_manager,
+    ):
+        response = client.get("/health/db")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ok",
+        "database": "connected",
+    }
+
+
+def test_legacy_database_health_alias_reports_unavailable_database():
+    with patch(
+        "app.api.v1.health.engine.connect",
+        side_effect=OSError("database unavailable"),
+    ):
+        response = client.get("/health/db")
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "status": "error",
+        "database": "disconnected",
+    }
+
+
 def test_root_exposes_package_version():
     response = client.get("/")
 
