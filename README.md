@@ -192,8 +192,9 @@ the container level.
 
 - Rate limiting is stored in process memory. It is not shared across workers or
   hosts; use Redis or an API gateway for distributed enforcement.
-- Password reset, email verification, OAuth providers, and MFA are planned but
-  are not part of the current release.
+- Password reset, OAuth providers, MFA, and device-session management remain
+  planned. Email verification is being developed for v1.2.0 and is not part of
+  the current v1.1.0 release.
 - The provided Docker Compose service runs PostgreSQL for local development; it
   does not yet build or deploy the API container.
 - Deployment defaults must be reviewed for your traffic, proxy topology,

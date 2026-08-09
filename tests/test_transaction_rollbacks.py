@@ -23,6 +23,28 @@ def test_registration_rolls_back_when_commit_fails():
     db.refresh.assert_not_called()
 
 
+def test_registration_returns_conflict_for_duplicate_identity():
+    from fastapi import HTTPException
+    from sqlalchemy.exc import IntegrityError
+
+    db = MagicMock()
+    db.commit.side_effect = IntegrityError("insert", {}, Exception("duplicate"))
+    user = UserCreate(
+        username="duplicate-user",
+        password="secret123",
+        email="duplicate@example.com",
+    )
+
+    with (
+        patch("app.auth.register.hash_password", return_value="hashed-password"),
+        pytest.raises(HTTPException) as exc_info,
+    ):
+        register(user, db)
+
+    assert exc_info.value.status_code == 409
+    db.rollback.assert_called_once_with()
+
+
 def test_login_rolls_back_when_refresh_token_commit_fails():
     db = MagicMock()
     db.query.return_value.filter.return_value.first.return_value = SimpleNamespace(

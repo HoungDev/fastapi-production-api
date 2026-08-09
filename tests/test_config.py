@@ -33,3 +33,13 @@ def test_production_rejects_debug_mode():
             DEBUG=True,
             _env_file=None,
         )
+
+
+def test_smtp_delivery_requires_host_and_sender():
+    with pytest.raises(ValueError, match="SMTP_HOST and SMTP_FROM"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            EMAIL_DELIVERY_MODE="smtp",
+            _env_file=None,
+        )

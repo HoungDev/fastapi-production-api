@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import Boolean, DateTime, Index, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -33,7 +33,11 @@ class User(Base):
 
     email: Mapped[str | None] = mapped_column(
         String(255),
-        unique=True,
+        nullable=True,
+    )
+
+    email_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
         nullable=True,
     )
 
@@ -54,4 +58,12 @@ class User(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
         nullable=False,
+    )
+
+    __table_args__ = (
+        Index(
+            "uq_users_email_normalized",
+            func.lower(func.trim(email)),
+            unique=True,
+        ),
     )

@@ -12,6 +12,7 @@ flowchart LR
     Proxy --> App["FastAPI application"]
     App --> Auth["JWT, refresh tokens, and RBAC"]
     App --> DB[("PostgreSQL")]
+    App --> SMTP["SMTP email provider"]
     App --> Logs["Structured JSON logs"]
     Prometheus["Prometheus"] --> Metrics["/metrics"]
     Metrics --> App
@@ -78,6 +79,12 @@ the response omits internal details.
 4. `POST /auth/refresh` validates the stored token, rejects revoked or expired
    records, revokes the old token, and commits a replacement token atomically.
 5. `POST /auth/logout` revokes the submitted refresh token.
+6. Registration may attach a normalized email identity. Verification requests
+   invalidate older outstanding tokens, persist only a SHA-256 token hash, and
+   deliver the raw token through the configured SMTP boundary.
+7. Confirmation locks and atomically consumes the scoped token while setting
+   `email_verified_at`. Expiry, replay, purpose, and current-email checks occur
+   before the transaction commits.
 
 Refresh-token rotation limits replay. Access tokens are stateless and remain
 valid until expiration, so clients must discard them on logout and deployments
@@ -116,8 +123,10 @@ metrics, alerts, and troubleshooting.
 
 Settings come from environment variables and `.env`; process environment values
 take precedence. Production validation rejects debug mode and short or known
-placeholder secrets. CORS origins, proxy trust, metrics exposure, database
-permissions, and secret storage remain deployment responsibilities.
+placeholder secrets. SMTP delivery is opt-in and requires a host and sender;
+disabled delivery does not create unreachable tokens. CORS origins, proxy
+trust, metrics exposure, database permissions, and secret storage remain
+deployment responsibilities.
 
 ## Safe extension points
 
@@ -133,8 +142,10 @@ Run `python scripts/dev.py check` before review.
 
 ## Intentional limitations
 
-The current rate limiter is process local, refresh-token persistence is
-synchronous, and the repository does not include MFA, password reset, a
-distributed cache, or a production container image. These are explicit roadmap
-items rather than hidden production claims. See [ROADMAP.md](ROADMAP.md) and
+The current rate limiter is process local, refresh-token persistence and SMTP
+delivery are synchronous, and the repository does not include MFA, password
+reset, a distributed cache, or a production container image. SMTP acceptance
+is not a durable delivery guarantee; applications requiring that guarantee
+should add a transactional outbox and worker. These are explicit roadmap items
+rather than hidden production claims. See [ROADMAP.md](ROADMAP.md) and
 [DEPLOYMENT.md](DEPLOYMENT.md) before adopting the foundation.
