@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pyotp
@@ -82,10 +82,13 @@ def _enroll(username: str) -> tuple[str, list[str], dict]:
     secret = enrollment.json()["secret"]
     assert "otpauth://totp/" in enrollment.json()["provisioning_uri"]
 
-    previous_step = datetime.now(UTC) - timedelta(seconds=30)
+    totp = pyotp.TOTP(secret)
+    current_counter = int(datetime.now(UTC).timestamp()) // totp.interval
+    previous_counter = current_counter - 1
+
     confirmation = client.post(
         "/auth/mfa/totp/confirm",
-        json={"code": pyotp.TOTP(secret).at(previous_step)},
+        json={"code": totp.generate_otp(previous_counter)},
         headers=headers,
     )
     assert confirmation.status_code == 200
