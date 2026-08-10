@@ -172,6 +172,25 @@ payloads.
 Read [MONITORING.md](MONITORING.md) for scrape configuration, multi-worker
 metrics, alerts, and troubleshooting.
 
+## Trace propagation boundary
+
+Tracing is disabled by default. When enabled, the application uses W3C Trace
+Context across supported request and worker boundaries.
+
+Transactional outbox rows persist only bounded `traceparent` and `tracestate`
+fields so a worker can continue the originating trace after the enqueue
+transaction has committed.
+
+Trace metadata remains separate from the encrypted lifecycle payload. Retryable
+jobs retain trace context so later attempts remain correlated; successful and
+dead-letter jobs purge the stored trace metadata.
+
+Malformed or oversized propagation values are ignored safely. W3C baggage is
+not persisted through the outbox.
+
+Tracing must not change leasing, idempotency, retry behavior, transaction
+correctness, SMTP delivery semantics, readiness, or application availability.
+
 ## Configuration and trust boundaries
 
 Settings come from environment variables and `.env`; process environment values

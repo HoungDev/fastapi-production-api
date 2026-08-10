@@ -59,6 +59,15 @@ class OutboxMessage(Base):
         DateTime(timezone=True), nullable=False
     )
     failure_category: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    traceparent: Mapped[str | None] = mapped_column(
+        String(256),
+        nullable=True,
+    )
+
+    tracestate: Mapped[str | None] = mapped_column(
+        String(512),
+        nullable=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
     )
