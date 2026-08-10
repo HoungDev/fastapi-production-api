@@ -2,10 +2,19 @@
 
 ## Supported versions
 
+Security fixes are provided for the latest published minor release line.
+
 | Version | Security support |
 | --- | --- |
-| `1.0.x` | Supported |
+| `1.2.x` | Supported |
+| `1.1.x` | Not supported |
+| `1.0.x` | Not supported |
 | `< 1.0` | Not supported |
+
+The unreleased `main` branch may contain work intended for the next minor
+release and is not a published security-support line. When `v1.3.0` is
+released, the supported line moves to `1.3.x` unless the project explicitly
+announces extended support for an older line.
 
 Security fixes are applied to the latest supported patch release. Upgrade to
 the newest release before reporting behavior that may already be fixed.
