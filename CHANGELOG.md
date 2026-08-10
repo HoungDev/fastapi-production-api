@@ -19,6 +19,12 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Bounded cache keys, TTLs, refresh locks, manual invalidation, and signing-key
   rotation refresh without caching identity or authorization decisions
 
+- Reproducible PostgreSQL database performance benchmarks for synchronous and
+  async SQLAlchemy/Psycopg implementations, with isolated schema execution,
+  machine-readable results, pool metrics, and documented comparison methodology
+- Architectural decision to retain synchronous SQLAlchemy for v1.3.0 because the
+  tested async prototype provided no consistent throughput or latency advantage
+
 - Optional OpenTelemetry distributed tracing across FastAPI, SQLAlchemy, HTTPX,
   Redis, and transactional outbox worker execution
 - W3C Trace Context propagation through bounded outbox metadata, JSON log

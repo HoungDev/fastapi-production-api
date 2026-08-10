@@ -143,6 +143,16 @@ operations explicitly commit only after all required mutations are ready and
 roll back when persistence fails. Alembic migrations are the source of truth
 for schema changes.
 
+The production database layer remains synchronous for v1.3.0. Controlled
+benchmarks against an isolated PostgreSQL schema found no consistent throughput
+or latency advantage from an equivalent async SQLAlchemy/Psycopg prototype
+across the tested workloads and concurrency range. Async throughput was lower
+in every measured comparison. Although one low-concurrency mixed-workload run
+showed modestly lower async p95 and p99 latency, that advantage did not persist
+as concurrency increased and was accompanied by lower throughput and higher
+median latency. See `DATABASE_PERFORMANCE.md` for the methodology, measurements,
+limitations, and reconsideration criteria.
+
 Production releases should run migrations once before starting new application
 workers. Do not let every worker race to apply schema changes.
 

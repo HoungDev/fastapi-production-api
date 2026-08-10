@@ -100,6 +100,28 @@ The test database is flushed before and after these tests. Never point
 Worker concurrency tests require PostgreSQL because SQLite does not implement
 `FOR UPDATE SKIP LOCKED`. The standard CI job runs these tests on PostgreSQL.
 
+### Database performance benchmarks
+
+Database benchmarks require PostgreSQL and run only against the isolated
+`benchmark` schema. They do not use the production SQLAlchemy session layer.
+
+Run the synchronous baseline:
+
+```bash
+python scripts/benchmarks/db_benchmark.py --scenario user-read --concurrency 4 --duration 10 --warmup 2 --fixture-sessions 50
+```
+
+Run the equivalent async SQLAlchemy/Psycopg prototype:
+
+```bash
+python scripts/benchmarks/async_db_benchmark.py --scenario user-read --concurrency 4 --duration 10 --warmup 2 --fixture-sessions 50
+```
+
+Use `--output` to persist machine-readable JSON under `benchmark-results/`.
+Local benchmark results are intentionally ignored by Git because timings are
+machine-specific. See `DATABASE_PERFORMANCE.md` for the methodology, reference
+measurements, limitations, and the v1.3.0 architectural decision.
+
 ## Typical contribution workflow
 
 ```bash

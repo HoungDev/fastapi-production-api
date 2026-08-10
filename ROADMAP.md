@@ -58,7 +58,7 @@ Status: in progress
 - Redis-backed rate limiting (completed)
 - Transactional outbox and background worker processing (completed)
 - Safe OIDC discovery/JWKS caching and invalidation guidance (completed)
-- Async database evaluation and performance benchmarks
+- Async database evaluation and performance benchmarks (completed; synchronous SQLAlchemy retained for v1.3.0)
 - Load-testing examples
 - OpenTelemetry tracing example (completed)
 

@@ -221,3 +221,6 @@ __marimo__/
 # Certificates and private keys
 *.pem
 *.key
+
+# Local benchmark results
+benchmark-results/
