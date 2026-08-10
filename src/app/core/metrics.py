@@ -62,6 +62,25 @@ OUTBOX_DELIVERY_DURATION_SECONDS = Histogram(
     buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30),
 )
 
+OIDC_CACHE_OPERATIONS_TOTAL = Counter(
+    "fastapi_production_api_oidc_cache_operations_total",
+    "OIDC public-document cache operations.",
+    ("document", "outcome"),
+)
+
+OIDC_PROVIDER_FETCHES_TOTAL = Counter(
+    "fastapi_production_api_oidc_provider_fetches_total",
+    "OIDC public-document provider fetch outcomes.",
+    ("document", "outcome"),
+)
+
+OIDC_PROVIDER_FETCH_DURATION_SECONDS = Histogram(
+    "fastapi_production_api_oidc_provider_fetch_duration_seconds",
+    "OIDC public-document provider fetch duration in seconds.",
+    ("document",),
+    buckets=(0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
+)
+
 
 def render_metrics() -> tuple[bytes, str]:
     if os.environ.get("PROMETHEUS_MULTIPROC_DIR"):

@@ -151,6 +151,30 @@ def test_redis_backend_requires_a_valid_url():
         )
 
 
+def test_oidc_redis_cache_requires_a_valid_url():
+    with pytest.raises(ValueError, match="REDIS_URL"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            OIDC_CACHE_BACKEND="redis",
+            REDIS_URL="https://redis.example",
+            _env_file=None,
+        )
+
+
+def test_oidc_cache_refresh_wait_must_be_shorter_than_lock():
+    with pytest.raises(ValueError, match="REFRESH_WAIT_SECONDS"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            OIDC_CACHE_BACKEND="redis",
+            REDIS_URL="redis://localhost:6379/0",
+            OIDC_CACHE_REFRESH_LOCK_SECONDS=2,
+            OIDC_CACHE_REFRESH_WAIT_SECONDS=2,
+            _env_file=None,
+        )
+
+
 def test_redis_backend_requires_a_dedicated_privacy_secret():
     redis_password = "validation-error-must-not-leak-this"
     with pytest.raises(ValueError, match="at least 32 bytes") as exc_info:

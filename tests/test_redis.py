@@ -1,5 +1,5 @@
 import asyncio
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 from pydantic import SecretStr
 
@@ -28,3 +28,26 @@ def test_redis_client_is_pooled_and_closed(monkeypatch):
     assert second is fake_client
     fake_client.aclose.assert_awaited_once()
     assert redis_core._redis_client is None
+
+
+def test_sync_redis_client_is_pooled_and_closed(monkeypatch):
+    fake_client = MagicMock()
+
+    monkeypatch.setattr(
+        redis_core.SyncRedis, "from_url", lambda *args, **kwargs: fake_client
+    )
+    monkeypatch.setattr(redis_core, "_sync_redis_client", None)
+    monkeypatch.setattr(
+        redis_core.settings,
+        "REDIS_URL",
+        SecretStr("redis://user:secret@localhost:6379/0"),
+    )
+
+    first = redis_core.get_sync_redis_client()
+    second = redis_core.get_sync_redis_client()
+    asyncio.run(redis_core.close_redis_client())
+
+    assert first is fake_client
+    assert second is fake_client
+    fake_client.close.assert_called_once()
+    assert redis_core._sync_redis_client is None

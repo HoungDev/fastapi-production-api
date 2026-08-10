@@ -155,3 +155,51 @@ scripts/dev.py setup`.
 Apply formatting with `uv run ruff format .`, rerun the focused failing test,
 and then run `python scripts/dev.py check` again. The coverage gate requires at
 least 90% combined statement-and-branch coverage.
+
+## OIDC discovery and JWKS cache
+
+OIDC public-document caching is optional and disabled by default. Keeping
+`OIDC_CACHE_BACKEND=none` preserves the direct-provider behavior.
+
+For local Redis-backed caching, configure the normal Redis connection and set:
+
+```env
+OIDC_CACHE_BACKEND=redis
+OIDC_DISCOVERY_CACHE_TTL_SECONDS=300
+OIDC_JWKS_CACHE_TTL_SECONDS=300
+OIDC_CACHE_REFRESH_LOCK_SECONDS=5
+OIDC_CACHE_REFRESH_WAIT_SECONDS=1
+```
+
+The cache stores only public OpenID Connect discovery documents and JWKS
+documents. Tokens, authorization decisions, claims, sessions, user data, and
+other authentication state must never be cached by this subsystem.
+
+Every document read from Redis is validated again before it can influence OIDC
+processing. Invalid, malformed, or oversized cached values are rejected and
+discarded. Cached discovery metadata must still match the configured issuer,
+and cached JWKS must still pass the normal key-set validation.
+
+Redis is an optimization rather than an authentication dependency. If Redis is
+unavailable, the application falls through to the OIDC provider directly. If
+both Redis and the provider are unavailable, the request fails normally rather
+than trusting expired cache data.
+
+When a token references a `kid` that is not present in a valid cached JWKS, the
+provider JWKS is refreshed once before the token is rejected. Normal issuer,
+algorithm, signature, audience, and claim validation remain unchanged.
+
+To invalidate the discovery and JWKS entries for only the configured issuer:
+
+```bash
+uv run fastapi-production-cache invalidate-oidc
+```
+
+The command does not scan or flush Redis globally. Cache keys are versioned,
+bounded, and derived from a digest of the issuer rather than storing the raw
+issuer in the key.
+
+Redis-backed integration tests require `REDIS_TEST_URL`. CI supplies a
+dedicated Redis database so multi-instance sharing, TTL behavior, invalidation,
+outage fallback, and refresh-lock behavior can be exercised without touching
+unrelated Redis data.

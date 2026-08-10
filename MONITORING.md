@@ -158,3 +158,60 @@ Capture `X-Request-ID` from the response and search the JSON logs for the same
 `request_id`. Start with the `http_request` record, then inspect application and
 database events carrying that correlation ID. Avoid logging authorization
 headers, tokens, passwords, or request bodies while debugging.
+
+## OIDC cache observability
+
+Redis-backed OIDC caching exports bounded, low-cardinality observations for
+cache reads, refreshes, invalid documents, invalidation, refresh-lock behavior,
+provider fetches, and failures. Provider fetch duration is also observable.
+
+To inspect the relevant Prometheus series during troubleshooting:
+
+```bash
+curl -fsS http://127.0.0.1:8000/metrics | grep -E 'oidc_(cache|provider)'
+```
+
+Useful operational signals include sustained increases in cache errors,
+provider-fetch failures, forced JWKS refreshes, invalid cached documents, or
+refresh-lock contention. A cache miss by itself is normal, especially after
+startup, TTL expiry, or manual invalidation.
+
+OIDC cache logs intentionally use bounded event/document fields. They must not
+include bearer tokens, ID tokens, claims, signing keys, Redis credentials,
+complete Redis URLs, raw issuer-derived cache keys, or other secrets.
+
+### OIDC cache Redis outage
+
+If Redis becomes unavailable, OIDC discovery and JWKS loading should fall
+through to the provider. Check application logs and OIDC cache metrics for the
+Redis error, then confirm that the provider remains reachable.
+
+If Redis instability is persistent, disable only this optimization:
+
+```env
+OIDC_CACHE_BACKEND=none
+```
+
+Restart the API instances after changing the setting. OIDC then continues with
+direct provider requests.
+
+Do not treat an expired Redis document as a stale authentication fallback.
+
+### OIDC signing-key rotation
+
+A token containing an unknown `kid` while the JWKS came from cache causes one
+provider JWKS refresh. If the key remains absent after that refresh, token
+validation is rejected normally.
+
+For planned provider changes or when operators need an immediate refresh, run:
+
+```bash
+fastapi-production-cache invalidate-oidc
+```
+
+Then verify that the next request repopulates the discovery/JWKS cache from the
+provider.
+
+If validation still fails after invalidation, check the provider's published
+JWKS, issuer configuration, signing algorithm, audience, and key-rotation
+sequence before changing cache behavior.

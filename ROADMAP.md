@@ -57,7 +57,7 @@ Status: in progress
 
 - Redis-backed rate limiting (completed)
 - Transactional outbox and background worker processing (completed)
-- Caching patterns and invalidation guidance
+- Safe OIDC discovery/JWKS caching and invalidation guidance (completed)
 - Async database evaluation and performance benchmarks
 - Load-testing examples
 - OpenTelemetry tracing example

@@ -350,3 +350,85 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for application trust boundaries and
 - [ ] Verify `/health/live`, `/health/ready`, and `/metrics` after deployment
 - [ ] Verify workers claim jobs, recover expired leases, and shut down cleanly
 - [ ] Alert on old pending jobs, retry growth, and dead-letter growth
+
+## OIDC cache operation, rotation, and rollback
+
+OIDC discovery and JWKS caching is an optional Redis-backed optimization.
+Deployments should initially leave `OIDC_CACHE_BACKEND=none`, verify the new
+application version, and only then enable `OIDC_CACHE_BACKEND=redis` after the
+Redis endpoint is reachable from every API instance.
+
+The Redis cache is shared by application processes so discovery and JWKS
+fetches do not need to be repeated independently by every worker. Entries have
+bounded TTLs and refresh coordination uses expiring locks. The implementation
+does not require Redis Cluster, Sentinel, or another distributed Redis
+topology.
+
+Only public provider documents are cached. Authentication decisions, bearer
+tokens, ID tokens, token claims, sessions, user records, and other private
+authentication state are never written to this cache.
+
+### Provider and Redis failure behavior
+
+A Redis read, write, or lock failure does not make Redis authoritative. The API
+falls back to fetching the document from the configured OIDC provider. Cached
+documents are validated after every read and malformed or oversized values are
+discarded.
+
+Expired cache entries are not trusted as a stale authentication fallback. If
+the provider is also unavailable, OIDC processing returns its controlled
+provider failure instead of accepting an expired document.
+
+Provider HTTP requests retain the normal OIDC transport protections, including
+redirect refusal and bounded response sizes.
+
+### Signing-key rotation
+
+Publish a new signing key in the provider JWKS before beginning to issue tokens
+with that key. If an otherwise valid cached JWKS does not contain a token's
+`kid`, the application performs one direct JWKS refresh and then repeats the
+normal key and algorithm checks.
+
+For an operator-controlled refresh, invalidate only the configured issuer:
+
+```bash
+fastapi-production-cache invalidate-oidc
+```
+
+When running from the source checkout, the equivalent command is:
+
+```bash
+uv run fastapi-production-cache invalidate-oidc
+```
+
+Manual invalidation removes only this application's discovery and JWKS entries
+for the configured issuer; it must not use `FLUSHDB`, `FLUSHALL`, wildcard
+deletion, or a Redis-wide key scan.
+
+### Rollout
+
+A safe production rollout is:
+
+1. deploy the release with `OIDC_CACHE_BACKEND=none`;
+2. confirm existing OIDC login and token validation remain healthy;
+3. verify Redis connectivity from all API instances;
+4. enable `OIDC_CACHE_BACKEND=redis` and restart the API instances;
+5. watch OIDC cache/provider metrics and structured logs for cache errors,
+   provider errors, refreshes, and lock contention;
+6. verify normal authentication and a planned cache invalidation.
+
+### Rollback
+
+Caching can be disabled without a database migration or Redis data migration.
+Set:
+
+```env
+OIDC_CACHE_BACKEND=none
+```
+
+and restart the API processes. The application then resumes direct discovery
+and JWKS retrieval from the provider. Existing Redis entries may be allowed to
+expire naturally or may be removed with the scoped `invalidate-oidc` command.
+
+Do not change the package version solely for this feature branch. Version
+changes remain part of the final v1.3.0 release preparation.
