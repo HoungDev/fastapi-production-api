@@ -6,6 +6,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.tracing import capture_trace_context
 from app.models.outbox_message import OutboxMessage
 from app.services.account_action_tokens import as_utc, utc_now
 
@@ -48,7 +49,10 @@ def enqueue_email_delivery(
         separators=(",", ":"),
         sort_keys=True,
     ).encode("utf-8")
+
     now = utc_now()
+    traceparent, tracestate = capture_trace_context()
+
     message = OutboxMessage(
         message_type=message_type,
         idempotency_key=outbox_idempotency_key(message_type, token_hash),
@@ -58,9 +62,12 @@ def enqueue_email_delivery(
         attempt_count=0,
         available_at=now,
         payload_expires_at=as_utc(expires_at),
+        traceparent=traceparent,
+        tracestate=tracestate,
         created_at=now,
         updated_at=now,
     )
+
     db.add(message)
     return message
 
@@ -77,9 +84,12 @@ def decrypt_email_payload(message: OutboxMessage) -> dict[str, str]:
 
     if not isinstance(payload, dict):
         raise ValueError("Invalid outbox payload shape")
+
     expected = {"action_url", "recipient", "token"}
+
     if set(payload) != expected or not all(
         isinstance(payload[field], str) and payload[field] for field in expected
     ):
         raise ValueError("Invalid outbox payload fields")
+
     return payload

@@ -19,6 +19,12 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Bounded cache keys, TTLs, refresh locks, manual invalidation, and signing-key
   rotation refresh without caching identity or authorization decisions
 
+- Optional OpenTelemetry distributed tracing across FastAPI, SQLAlchemy, HTTPX,
+  Redis, and transactional outbox worker execution
+- W3C Trace Context propagation through bounded outbox metadata, JSON log
+  `trace_id`/`span_id` correlation, OTLP/HTTP export, sampling controls, and
+  secret-redaction safeguards
+
 ## [1.2.0] - 2026-08-09
 
 ### Added

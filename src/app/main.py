@@ -18,6 +18,7 @@ from app.auth.register import router as register_router
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.core.redis import close_redis_client
+from app.core.tracing import setup_tracing, shutdown_tracing
 from app.exceptions.handlers import register_exception_handlers
 from app.middlewares.cors import setup_cors
 from app.middlewares.rate_limit import setup_rate_limit
@@ -30,8 +31,11 @@ setup_logging()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    yield
-    await close_redis_client()
+    try:
+        yield
+    finally:
+        shutdown_tracing()
+        await close_redis_client()
 
 
 app = FastAPI(
@@ -56,6 +60,8 @@ Security-focused backend foundation with:
     lifespan=lifespan,
 )
 
+
+setup_tracing(app)
 
 setup_cors(app)
 

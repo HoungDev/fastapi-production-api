@@ -130,6 +130,16 @@ class Settings(BaseSettings):
         le=1048576,
     )
 
+    TRACING_ENABLED: bool = False
+
+    OTEL_SERVICE_NAME: str = "fastapi-production-api"
+
+    OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://localhost:4318"
+
+    OTEL_EXPORT_TIMEOUT_SECONDS: float = Field(default=5.0, gt=0, le=30)
+
+    OTEL_TRACE_SAMPLE_RATIO: float = Field(default=1.0, ge=0.0, le=1.0)
+
     SMTP_HOST: str = ""
 
     SMTP_PORT: int = 587
@@ -189,10 +199,12 @@ class Settings(BaseSettings):
                     "OUTBOX_BACKOFF_MAX_SECONDS must be greater than or equal to "
                     "OUTBOX_BACKOFF_BASE_SECONDS"
                 )
+
             if self.OUTBOX_LEASE_SECONDS <= self.SMTP_TIMEOUT_SECONDS:
                 raise ValueError(
                     "OUTBOX_LEASE_SECONDS must be greater than SMTP_TIMEOUT_SECONDS"
                 )
+
             if self.OUTBOX_SHUTDOWN_GRACE_SECONDS < self.SMTP_TIMEOUT_SECONDS:
                 raise ValueError(
                     "OUTBOX_SHUTDOWN_GRACE_SECONDS must be at least "
@@ -217,20 +229,25 @@ class Settings(BaseSettings):
                 self.OIDC_CLIENT_ID,
                 self.OIDC_CLIENT_SECRET.get_secret_value(),
             )
+
             if not all(required):
                 raise ValueError(
                     "OIDC_ISSUER, OIDC_CLIENT_ID, and OIDC_CLIENT_SECRET are "
                     "required when OIDC is enabled"
                 )
+
             if "openid" not in self.OIDC_SCOPES.split():
                 raise ValueError("OIDC_SCOPES must include openid")
+
             if not self.OIDC_ALLOWED_ALGORITHMS.strip():
                 raise ValueError("OIDC_ALLOWED_ALGORITHMS cannot be empty")
+
             allowed_algorithms = {
                 value.strip()
                 for value in self.OIDC_ALLOWED_ALGORITHMS.split(",")
                 if value.strip()
             }
+
             asymmetric_algorithms = {
                 "RS256",
                 "RS384",
@@ -243,13 +260,16 @@ class Settings(BaseSettings):
                 "ES512",
                 "EdDSA",
             }
+
             if not allowed_algorithms <= asymmetric_algorithms:
                 raise ValueError(
                     "OIDC_ALLOWED_ALGORITHMS must contain only asymmetric signing "
                     "algorithms"
                 )
+
             issuer = urlsplit(self.OIDC_ISSUER)
             redirect = urlsplit(self.OIDC_REDIRECT_URI)
+
             if (
                 issuer.scheme != "https"
                 or not issuer.netloc
@@ -259,12 +279,15 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "OIDC_ISSUER must be an HTTPS URL without query or fragment"
                 )
+
             if len(self.OIDC_ISSUER.rstrip("/")) > 255:
                 raise ValueError("OIDC_ISSUER must not exceed 255 characters")
+
             if not redirect.scheme or not redirect.netloc or redirect.fragment:
                 raise ValueError(
                     "OIDC_REDIRECT_URI must be an absolute URL without fragment"
                 )
+
             try:
                 Fernet(
                     self.OIDC_TRANSACTION_ENCRYPTION_KEY.get_secret_value().encode(
@@ -283,6 +306,28 @@ class Settings(BaseSettings):
             raise ValueError(
                 "SMTP_HOST and SMTP_FROM are required when SMTP delivery is enabled"
             )
+
+        if self.TRACING_ENABLED:
+            endpoint = urlsplit(self.OTEL_EXPORTER_OTLP_ENDPOINT)
+
+            if endpoint.scheme not in {"http", "https"} or not endpoint.netloc:
+                raise ValueError(
+                    "OTEL_EXPORTER_OTLP_ENDPOINT must be an absolute http:// or "
+                    "https:// URL when tracing is enabled"
+                )
+
+            if endpoint.username is not None or endpoint.password is not None:
+                raise ValueError(
+                    "OTEL_EXPORTER_OTLP_ENDPOINT must not contain embedded credentials"
+                )
+
+            if not self.OTEL_SERVICE_NAME.strip():
+                raise ValueError(
+                    "OTEL_SERVICE_NAME cannot be empty when tracing is enabled"
+                )
+
+            if len(self.OTEL_SERVICE_NAME) > 128:
+                raise ValueError("OTEL_SERVICE_NAME must not exceed 128 characters")
 
         if self.ENVIRONMENT.lower() != "production":
             return self
@@ -310,7 +355,10 @@ class Settings(BaseSettings):
 
         if self.EMAIL_DELIVERY_MODE in {"smtp", "outbox"} and not all(
             url.startswith("https://")
-            for url in (self.EMAIL_VERIFICATION_URL, self.PASSWORD_RESET_URL)
+            for url in (
+                self.EMAIL_VERIFICATION_URL,
+                self.PASSWORD_RESET_URL,
+            )
         ):
             raise ValueError("Email action URLs must use HTTPS in production")
 

@@ -156,6 +156,37 @@ Apply formatting with `uv run ruff format .`, rerun the focused failing test,
 and then run `python scripts/dev.py check` again. The coverage gate requires at
 least 90% combined statement-and-branch coverage.
 
+## OpenTelemetry tracing
+
+Tracing is optional and disabled by default. Existing local development
+behavior is unchanged while `TRACING_ENABLED=false`.
+
+To send traces to a local OTLP/HTTP-compatible Collector, configure:
+
+    TRACING_ENABLED=true
+    OTEL_SERVICE_NAME=fastapi-production-api
+    OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+    OTEL_EXPORT_TIMEOUT_SECONDS=5
+    OTEL_TRACE_SAMPLE_RATIO=1.0
+
+Start the Collector separately, then restart the API so tracing is initialized
+for that process.
+
+The normal test suite does not require an external telemetry backend. Tracing
+tests use in-memory or mocked exporters.
+
+Focused tracing tests:
+
+    uv run pytest tests/test_tracing.py tests/test_logging.py tests/test_outbox_tracing.py
+
+Tracing must not capture request or response bodies, authorization headers,
+cookies, credentials, lifecycle tokens, raw email addresses, OIDC
+authorization codes, state, nonce, PKCE values, or sensitive query strings.
+
+Transactional outbox propagation stores only bounded W3C `traceparent` and
+`tracestate`. Do not persist W3C baggage or application payload data as trace
+metadata.
+
 ## OIDC discovery and JWKS cache
 
 OIDC public-document caching is optional and disabled by default. Keeping

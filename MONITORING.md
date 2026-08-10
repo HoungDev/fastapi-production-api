@@ -91,10 +91,45 @@ Every application log is a single JSON object containing `timestamp`, `level`,
 `logger`, `message`, and `request_id`. HTTP completion records also contain
 `method`, `path`, `route`, `status_code`, and `duration_ms`.
 
+When a valid OpenTelemetry span is active, the same JSON record also contains
+hexadecimal `trace_id` and `span_id` values. This allows operators to correlate
+logs and distributed traces without replacing the existing `request_id`
+workflow.
+
 Clients may send `X-Request-ID` using 1-128 letters, digits, dots, underscores,
 colons, or hyphens. Invalid or missing values are replaced with a generated ID,
 and the effective value is returned in the response header. Forward this header
 through proxies and include it in downstream service logs.
+
+## OpenTelemetry tracing
+
+Tracing is disabled by default. Enable it only after an OTLP/HTTP-compatible
+Collector is available.
+
+    TRACING_ENABLED=true
+    OTEL_SERVICE_NAME=fastapi-production-api
+    OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector.internal.example:4318
+    OTEL_EXPORT_TIMEOUT_SECONDS=5
+    OTEL_TRACE_SAMPLE_RATIO=0.1
+
+The application instruments FastAPI inbound requests, SQLAlchemy operations,
+HTTPX outbound calls, Redis operations, and transactional outbox worker
+execution. W3C Trace Context is propagated through the outbox using only
+bounded `traceparent` and `tracestate` values.
+
+Trace attributes intentionally exclude request and response bodies,
+authorization headers, cookies, raw query strings, credentials, email
+addresses, lifecycle tokens, OIDC state, nonce, PKCE values, and authorization
+codes.
+
+Collector failure must not make `/health/ready` fail. If traces stop arriving
+while readiness, Prometheus metrics, and application logs remain healthy,
+inspect Collector reachability, OTLP endpoint configuration, sampling, backend
+ingestion, and retention before restarting application processes.
+
+To correlate one request, capture its `X-Request-ID`, find the JSON
+`http_request` log, read `trace_id` and `span_id` when present, then query the
+trace backend by `trace_id`.
 
 ## Baseline alert ideas
 

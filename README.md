@@ -130,6 +130,8 @@ flowchart LR
     Worker --> SMTP["SMTP provider"]
     API --> Logs["JSON logs"]
     Monitor["Prometheus"] --> API
+    API -. optional OTLP/HTTP .-> Collector["OpenTelemetry Collector"]
+    Worker -. optional OTLP/HTTP .-> Collector
 ```
 
 ```text
@@ -193,6 +195,42 @@ disjoint work without holding transactions during SMTP calls. Delivery is
 at-least-once: a crash after SMTP accepts a message but before finalization may
 produce a duplicate. Terminal jobs retain safe metadata but purge encrypted
 recipients and lifecycle tokens; request a new token instead of replaying them.
+
+## Optional distributed tracing
+
+OpenTelemetry tracing is opt-in and disabled by default. When enabled, the
+application exports traces over OTLP/HTTP and instruments FastAPI requests,
+SQLAlchemy operations, HTTPX calls, Redis operations, and transactional outbox
+worker execution.
+
+Example local configuration:
+
+    TRACING_ENABLED=true
+    OTEL_SERVICE_NAME=fastapi-production-api
+    OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+    OTEL_EXPORT_TIMEOUT_SECONDS=5
+    OTEL_TRACE_SAMPLE_RATIO=1.0
+
+Production deployments should normally export to an OpenTelemetry Collector
+and use a sampling ratio appropriate for traffic volume.
+
+Structured JSON logs retain `request_id` and additionally include `trace_id`
+and `span_id` while a valid OpenTelemetry span is active.
+
+Tracing deliberately avoids recording authorization headers, cookies,
+request/response bodies, lifecycle tokens, OIDC state/nonce/PKCE data,
+credentials, raw email addresses, and query-string values.
+
+Transactional outbox propagation stores only bounded W3C `traceparent` and
+`tracestate` metadata so worker activity can remain correlated with the
+originating request.
+
+Tracing is an observability feature, not a correctness or readiness dependency.
+Collector or exporter failure must not make otherwise valid API requests or
+worker jobs fail.
+
+See [MONITORING.md](MONITORING.md) for trace correlation and operational
+diagnostics and [DEPLOYMENT.md](DEPLOYMENT.md) for production rollout guidance.
 
 ## Quality checks
 

@@ -60,7 +60,7 @@ Status: in progress
 - Safe OIDC discovery/JWKS caching and invalidation guidance (completed)
 - Async database evaluation and performance benchmarks
 - Load-testing examples
-- OpenTelemetry tracing example
+- OpenTelemetry tracing example (completed)
 
 ## v2.0 — Deployment patterns at scale
 

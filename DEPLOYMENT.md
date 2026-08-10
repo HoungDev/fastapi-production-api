@@ -104,6 +104,11 @@ OIDC_CLIENT_ID=<provider-client-id>
 OIDC_CLIENT_SECRET=<provider-client-secret>
 OIDC_REDIRECT_URI=https://api.your-domain.example/auth/oidc/callback
 OIDC_TRANSACTION_ENCRYPTION_KEY=<dedicated-fernet-key>
+TRACING_ENABLED=false
+OTEL_SERVICE_NAME=fastapi-production-api
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector.internal.example:4318
+OTEL_EXPORT_TIMEOUT_SECONDS=5
+OTEL_TRACE_SAMPLE_RATIO=0.1
 SMTP_HOST=smtp.example.com
 SMTP_FROM=security@your-domain.example
 ```
@@ -334,6 +339,43 @@ See [MONITORING.md](MONITORING.md) for Prometheus scraping, multi-worker metric
 aggregation, correlation IDs, alert ideas, and troubleshooting.
 See [ARCHITECTURE.md](ARCHITECTURE.md) for application trust boundaries and
 [API_EXAMPLES.md](API_EXAMPLES.md) for authenticated smoke-test requests.
+
+## OpenTelemetry tracing rollout and rollback
+
+Tracing is optional and should be rolled out independently from application
+correctness. Keep `TRACING_ENABLED=false` for the first deployment of a new
+application version, verify normal API and worker behavior, then enable tracing
+after the OTLP Collector endpoint is reachable.
+
+Recommended production configuration:
+
+    TRACING_ENABLED=true
+    OTEL_SERVICE_NAME=fastapi-production-api
+    OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector.internal.example:4318
+    OTEL_EXPORT_TIMEOUT_SECONDS=5
+    OTEL_TRACE_SAMPLE_RATIO=0.1
+
+Collector failure is intentionally not part of `/health/ready`. Exporter
+timeouts are bounded, and tracing must degrade without failing normal API
+requests, database operations, Redis operations, OIDC calls, or outbox worker
+jobs.
+
+Do not embed credentials in `OTEL_EXPORTER_OTLP_ENDPOINT`. Restrict access to
+the Collector and trace backend, configure retention deliberately, and review
+sampling against traffic volume and privacy requirements.
+
+Migration `65bcb8a12535` adds nullable bounded `traceparent` and `tracestate`
+columns to the transactional outbox. Existing rows remain compatible.
+
+To disable tracing without rolling back the schema:
+
+    TRACING_ENABLED=false
+
+Restart API and worker processes after changing this setting.
+
+If the tracing schema itself must be rolled back, stop new API writers and
+outbox workers first, then downgrade to `f3a6c8d91b42`. This removes only the
+trace-context columns; tracing metadata is not a correctness dependency.
 
 ## Release checklist
 
