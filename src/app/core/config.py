@@ -114,6 +114,22 @@ class Settings(BaseSettings):
 
     OIDC_HTTP_TIMEOUT_SECONDS: float = 5.0
 
+    OIDC_CACHE_BACKEND: Literal["none", "redis"] = "none"
+
+    OIDC_DISCOVERY_CACHE_TTL_SECONDS: int = Field(default=300, gt=0, le=86400)
+
+    OIDC_JWKS_CACHE_TTL_SECONDS: int = Field(default=300, gt=0, le=86400)
+
+    OIDC_CACHE_REFRESH_LOCK_SECONDS: int = Field(default=5, gt=0, le=60)
+
+    OIDC_CACHE_REFRESH_WAIT_SECONDS: float = Field(default=1.0, ge=0, le=10)
+
+    OIDC_CACHE_MAX_DOCUMENT_BYTES: int = Field(
+        default=262144,
+        ge=1024,
+        le=1048576,
+    )
+
     SMTP_HOST: str = ""
 
     SMTP_PORT: int = 587
@@ -130,21 +146,32 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> Self:
-        if self.RATE_LIMIT_BACKEND == "redis":
+        if self.RATE_LIMIT_BACKEND == "redis" or self.OIDC_CACHE_BACKEND == "redis":
             redis_url_value = self.REDIS_URL.get_secret_value()
             redis_url = urlsplit(redis_url_value)
             if redis_url.scheme not in {"redis", "rediss"} or not redis_url.hostname:
                 raise ValueError(
-                    "REDIS_URL must be a redis:// or rediss:// URL when the Redis "
-                    "rate-limit backend is enabled"
+                    "REDIS_URL must be a redis:// or rediss:// URL when a Redis "
+                    "backend is enabled"
                 )
 
+        if self.RATE_LIMIT_BACKEND == "redis":
             rate_limit_secret = self.RATE_LIMIT_KEY_SECRET.get_secret_value()
             if len(rate_limit_secret.encode("utf-8")) < 32:
                 raise ValueError(
                     "RATE_LIMIT_KEY_SECRET must contain at least 32 bytes when "
                     "the Redis rate-limit backend is enabled"
                 )
+
+        if (
+            self.OIDC_CACHE_BACKEND == "redis"
+            and self.OIDC_CACHE_REFRESH_WAIT_SECONDS
+            >= self.OIDC_CACHE_REFRESH_LOCK_SECONDS
+        ):
+            raise ValueError(
+                "OIDC_CACHE_REFRESH_WAIT_SECONDS must be less than "
+                "OIDC_CACHE_REFRESH_LOCK_SECONDS"
+            )
 
         if self.EMAIL_DELIVERY_MODE == "outbox":
             from cryptography.fernet import Fernet

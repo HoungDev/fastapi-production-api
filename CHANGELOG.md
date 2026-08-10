@@ -15,6 +15,9 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Optional PostgreSQL transactional outbox for durable lifecycle-email delivery
 - Horizontally scalable workers with leases, retries, dead-letter handling,
   encrypted payloads, graceful shutdown, and bounded telemetry
+- Optional Redis cache-aside for validated public OIDC discovery and JWKS data
+- Bounded cache keys, TTLs, refresh locks, manual invalidation, and signing-key
+  rotation refresh without caching identity or authorization decisions
 
 ## [1.2.0] - 2026-08-09
 

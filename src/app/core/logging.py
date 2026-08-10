@@ -32,6 +32,8 @@ class JsonFormatter(logging.Formatter):
             "outbox_attempt",
             "outbox_event",
             "outbox_failure_category",
+            "oidc_cache_event",
+            "oidc_cache_document",
         ):
             value = getattr(record, field, None)
             if value is not None:

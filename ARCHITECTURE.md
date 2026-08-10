@@ -120,6 +120,10 @@ the response omits internal details.
 16. External identities use immutable `(issuer, subject)` keys. Matching email
     never links an existing account; linking requires a recent authenticated
     local session. Identity changes revoke refresh sessions.
+17. Optional Redis cache-aside stores only validated public OIDC discovery and
+    JWKS documents under versioned issuer-digest keys. Every cache read is
+    validated again. Misses use a bounded refresh lock; Redis errors bypass to
+    the provider. An unknown cached `kid` forces one provider JWKS refresh.
 
 Refresh-token families detect replay and make device-level revocation possible.
 Access tokens are stateless and remain valid until expiration, so clients must
@@ -162,6 +166,8 @@ payloads.
 - Rate-limit metrics use only bounded backend, outcome, and operation labels.
 - Outbox metrics use bounded message types, outcomes, and failure categories;
   worker logs never include recipients, tokens, ciphertext, or provider details.
+- OIDC cache/provider metrics use only bounded document and outcome labels;
+  issuer URLs, key IDs, documents, tokens, and credentials are excluded.
 
 Read [MONITORING.md](MONITORING.md) for scrape configuration, multi-worker
 metrics, alerts, and troubleshooting.
@@ -174,7 +180,8 @@ placeholder secrets. SMTP delivery is opt-in and requires a host and sender;
 disabled delivery does not create unreachable tokens. MFA and OIDC transaction
 data use dedicated encryption keys rather than the JWT signing secret. Redis
 quota keys contain only versioned HMAC identifiers and bounded fixed-window
-counters. CORS origins, proxy
+counters. OIDC cache keys contain a fixed issuer digest, document kind, and
+bounded TTL; values contain only public discovery/JWKS JSON. CORS origins, proxy
 trust, metrics exposure, database permissions, and secret storage remain
 deployment responsibilities.
 
@@ -195,8 +202,8 @@ Run `python scripts/dev.py check` before review.
 Memory rate limiting remains available for single-process use; shared quotas
 require Redis. Redis Cluster and cross-region quota guarantees are not included.
 Refresh-token persistence and SMTP delivery are synchronous, and the repository
-does not include phishing-resistant
-MFA, immediate JWT revocation, a distributed cache, or a production container image. Password
+does not include phishing-resistant MFA, immediate JWT revocation, a
+general-purpose application cache, or a production container image. Password
 reset revokes refresh tokens, but existing stateless access tokens remain valid
 until expiry. SMTP acceptance is not a durable delivery guarantee; applications
 requiring that guarantee should add a transactional outbox and worker. These

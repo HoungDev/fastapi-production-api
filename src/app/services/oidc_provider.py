@@ -1,11 +1,21 @@
+import logging
+import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable, TypeVar
 from urllib.parse import urlsplit
 
 import httpx
 import jwt
 
 from app.core.config import settings
+from app.core.metrics import (
+    OIDC_PROVIDER_FETCH_DURATION_SECONDS,
+    OIDC_PROVIDER_FETCHES_TOTAL,
+)
+from app.services.oidc_cache import CacheDocument, OIDCPublicDocumentCache
+
+logger = logging.getLogger("fastapi-production-api.oidc_provider")
+ValidatedDocument = TypeVar("ValidatedDocument")
 
 
 class OIDCProviderError(Exception):
@@ -25,11 +35,20 @@ class OIDCProviderClient:
         self,
         timeout: float | None = None,
         transport: httpx.BaseTransport | None = None,
+        cache: OIDCPublicDocumentCache | None = None,
     ):
         self.timeout = timeout or settings.OIDC_HTTP_TIMEOUT_SECONDS
         self.transport = transport
+        self.cache = cache or OIDCPublicDocumentCache()
 
-    def _request_json(self, method: str, url: str, **kwargs) -> dict[str, Any]:
+    def _request_json(
+        self,
+        method: str,
+        url: str,
+        *,
+        max_bytes: int | None = None,
+        **kwargs,
+    ) -> dict[str, Any]:
         try:
             with httpx.Client(
                 timeout=self.timeout,
@@ -38,18 +57,19 @@ class OIDCProviderClient:
             ) as client:
                 response = client.request(method, url, **kwargs)
                 response.raise_for_status()
+                if max_bytes is not None and len(response.content) > max_bytes:
+                    raise OIDCProviderError("OIDC provider document is too large")
                 payload = response.json()
+        except OIDCProviderError:
+            raise
         except (httpx.HTTPError, ValueError) as exc:
             raise OIDCProviderError("OIDC provider request failed") from exc
         if not isinstance(payload, dict):
             raise OIDCProviderError("OIDC provider returned an invalid response")
         return payload
 
-    def discover(self) -> OIDCMetadata:
+    def _validate_discovery(self, payload: dict[str, Any]) -> OIDCMetadata:
         issuer = settings.OIDC_ISSUER.rstrip("/")
-        payload = self._request_json(
-            "GET", f"{issuer}/.well-known/openid-configuration"
-        )
         try:
             metadata = OIDCMetadata(
                 issuer=payload["issuer"],
@@ -78,6 +98,103 @@ class OIDCProviderClient:
             raise OIDCProviderError("OIDC provider endpoints must use HTTPS")
         if "S256" not in payload.get("code_challenge_methods_supported", []):
             raise OIDCProviderError("OIDC provider does not advertise PKCE S256")
+        return metadata
+
+    @staticmethod
+    def _validate_jwks(payload: dict[str, Any]) -> dict[str, Any]:
+        keys = payload.get("keys")
+        if (
+            not isinstance(keys, list)
+            or not keys
+            or not all(isinstance(key, dict) for key in keys)
+        ):
+            raise OIDCProviderError("OIDC JWKS document is invalid")
+        try:
+            jwt.PyJWKSet.from_dict(payload)
+        except (jwt.PyJWTError, ValueError, TypeError) as exc:
+            raise OIDCProviderError("OIDC JWKS document is invalid") from exc
+        return payload
+
+    def _fetch_public_document(
+        self,
+        document: CacheDocument,
+        url: str,
+    ) -> dict[str, Any]:
+        started_at = time.perf_counter()
+        try:
+            payload = self._request_json(
+                "GET",
+                url,
+                max_bytes=settings.OIDC_CACHE_MAX_DOCUMENT_BYTES,
+            )
+        except OIDCProviderError:
+            OIDC_PROVIDER_FETCHES_TOTAL.labels(
+                document=document,
+                outcome="error",
+            ).inc()
+            raise
+        else:
+            OIDC_PROVIDER_FETCHES_TOTAL.labels(
+                document=document,
+                outcome="success",
+            ).inc()
+            return payload
+        finally:
+            OIDC_PROVIDER_FETCH_DURATION_SECONDS.labels(document=document).observe(
+                time.perf_counter() - started_at
+            )
+
+    def _load_public_document(
+        self,
+        document: CacheDocument,
+        url: str,
+        validator: Callable[[dict[str, Any]], ValidatedDocument],
+        *,
+        force_refresh: bool = False,
+        previous_payload: dict[str, Any] | None = None,
+    ) -> tuple[ValidatedDocument, bool]:
+        if not force_refresh:
+            cached = self.cache.read(document)
+            if cached.payload is not None:
+                try:
+                    validated = validator(cached.payload)
+                except OIDCProviderError:
+                    self.cache.reject(document)
+                else:
+                    self.cache.record_hit(document)
+                    return validated, True
+
+        lock = self.cache.acquire_refresh_lock(document)
+        if lock is None and self.cache.enabled:
+            waited = self.cache.wait_for_value(
+                document,
+                different_from=previous_payload if force_refresh else None,
+            )
+            if waited.payload is not None:
+                try:
+                    validated = validator(waited.payload)
+                except OIDCProviderError:
+                    self.cache.reject(document)
+                else:
+                    self.cache.record_hit(document)
+                    return validated, True
+
+        try:
+            payload = self._fetch_public_document(document, url)
+            validated = validator(payload)
+            self.cache.write(document, payload)
+            return validated, False
+        finally:
+            if lock is not None:
+                self.cache.release_refresh_lock(document, lock)
+
+    def discover(self) -> OIDCMetadata:
+        issuer = settings.OIDC_ISSUER.rstrip("/")
+        metadata, _ = self._load_public_document(
+            "discovery",
+            f"{issuer}/.well-known/openid-configuration",
+            self._validate_discovery,
+        )
         return metadata
 
     def exchange_code(
@@ -124,7 +241,11 @@ class OIDCProviderClient:
             if algorithm not in allowed or not key_id:
                 raise OIDCProviderError("OIDC ID token header is not allowed")
 
-            jwks = self._request_json("GET", metadata.jwks_uri)
+            jwks, from_cache = self._load_public_document(
+                "jwks",
+                metadata.jwks_uri,
+                self._validate_jwks,
+            )
             keys = jwt.PyJWKSet.from_dict(jwks).keys
             signing_key = next(
                 (
@@ -134,6 +255,30 @@ class OIDCProviderClient:
                 ),
                 None,
             )
+            if signing_key is None and from_cache:
+                logger.info(
+                    "oidc_jwks_forced_refresh",
+                    extra={
+                        "oidc_cache_event": "unknown_key_refresh",
+                        "oidc_cache_document": "jwks",
+                    },
+                )
+                jwks, _ = self._load_public_document(
+                    "jwks",
+                    metadata.jwks_uri,
+                    self._validate_jwks,
+                    force_refresh=True,
+                    previous_payload=jwks,
+                )
+                keys = jwt.PyJWKSet.from_dict(jwks).keys
+                signing_key = next(
+                    (
+                        key
+                        for key in keys
+                        if key.key_id == key_id and key.algorithm_name == algorithm
+                    ),
+                    None,
+                )
             if signing_key is None:
                 raise OIDCProviderError("OIDC signing key was not found")
 

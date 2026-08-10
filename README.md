@@ -92,6 +92,7 @@ contributor workflows, and local troubleshooting.
 - Verified email identities and single-use password recovery
 - Optional TOTP MFA with encrypted seeds, one-time recovery codes, and step-up claims
 - Optional provider-neutral OIDC Authorization Code login with PKCE S256
+- Optional Redis cache-aside for validated public OIDC discovery and JWKS data
 - bcrypt password hashing
 - Current-user endpoints and role-based admin routes
 
@@ -229,6 +230,10 @@ the container level.
 
 - The Redis limiter targets a single Redis deployment. Redis Cluster, Sentinel,
   Active-Active, and cross-region quota guarantees are outside this release.
+- OIDC caching is disabled by default. Redis mode caches only bounded public
+  discovery/JWKS documents; it never caches tokens, claims, users, sessions,
+  permissions, or authentication/authorization decisions. Unknown signing keys
+  force one provider refresh and remain rejected if still absent.
 - OIDC support is a provider-neutral example and requires provider registration,
   exact redirect configuration, and application-specific threat-model review.
 - TOTP reduces password-only risk but is not phishing resistant. Prefer
