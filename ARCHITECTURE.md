@@ -22,10 +22,13 @@ flowchart LR
     Metrics --> App
 ```
 
-The reverse proxy terminates TLS and controls trusted forwarding headers. The
-application owns validation, authorization, business transactions, and
-telemetry. PostgreSQL is required; Redis becomes a required readiness dependency
-when distributed rate limiting is enabled.
+The reverse proxy terminates TLS and replaces untrusted forwarding headers.
+Uvicorn accepts those headers only from the explicit `FORWARDED_ALLOW_IPS`
+address/CIDR allowlist, then exposes one canonical ASGI client address to both
+request logging and rate limiting. The application owns validation,
+authorization, business transactions, and telemetry. PostgreSQL is required;
+Redis becomes a required readiness dependency when distributed rate limiting is
+enabled.
 
 ## Source layout and responsibilities
 
@@ -214,9 +217,10 @@ disabled delivery does not create unreachable tokens. MFA and OIDC transaction
 data use dedicated encryption keys rather than the JWT signing secret. Redis
 quota keys contain only versioned HMAC identifiers and bounded fixed-window
 counters. OIDC cache keys contain a fixed issuer digest, document kind, and
-bounded TTL; values contain only public discovery/JWKS JSON. CORS origins, proxy
-trust, metrics exposure, database permissions, and secret storage remain
-deployment responsibilities.
+bounded TTL; values contain only public discovery/JWKS JSON. Proxy trust is
+fail-closed by default but its exact CIDRs, along with CORS origins, metrics
+exposure, database permissions, and secret storage, remain deployment
+responsibilities.
 
 ## Safe extension points
 

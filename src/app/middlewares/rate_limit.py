@@ -10,6 +10,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from redis.exceptions import RedisError
 
+from app.core.client_ip import resolve_client_ip
 from app.core.config import settings
 from app.core.metrics import (
     RATE_LIMIT_BACKEND_ERRORS_TOTAL,
@@ -129,7 +130,7 @@ def _redis_rate_limiter() -> RedisRateLimiter:
 
 
 def _client_address(request: Request) -> str:
-    return request.client.host if request.client else "unknown"
+    return resolve_client_ip(request)
 
 
 def setup_rate_limit(app: FastAPI) -> None:

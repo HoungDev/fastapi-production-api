@@ -47,7 +47,7 @@ def test_redis_key_is_versioned_bounded_and_privacy_preserving():
     assert RedisRateLimiter.normalize_client("2001:0db8::1") == "2001:db8::1"
 
 
-def test_forwarded_headers_do_not_change_the_asgi_client_address():
+def test_forwarded_headers_are_not_parsed_by_the_rate_limiter():
     request = Request(
         {
             "type": "http",

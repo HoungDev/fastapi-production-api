@@ -3,6 +3,7 @@ import time
 
 from fastapi import FastAPI, Request
 
+from app.core.client_ip import resolve_client_ip
 from app.core.metrics import (
     HTTP_REQUEST_DURATION_SECONDS,
     HTTP_REQUESTS_IN_PROGRESS,
@@ -70,6 +71,7 @@ def setup_request_logging(
                 "http_request",
                 extra={
                     "method": method,
+                    "client_ip": resolve_client_ip(request),
                     "path": request.url.path,
                     "route": route,
                     "status_code": status_code,

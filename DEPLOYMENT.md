@@ -267,8 +267,7 @@ server {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
@@ -287,10 +286,21 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-Only trust forwarded headers from proxies you control. Configure Uvicorn's
-forwarded allowlist (for example `FORWARDED_ALLOW_IPS=127.0.0.1` for same-host
-Nginx) and firewall the Gunicorn port from untrusted clients. The application
-uses the ASGI scope client address and never parses forwarding headers itself.
+`FORWARDED_ALLOW_IPS` is the trust boundary for both client IP and forwarded
+scheme resolution. Set it to the socket peers that connect directly to
+Gunicorn, for example `127.0.0.1` for same-host Nginx or a comma-separated list
+of canonical proxy CIDRs. The default is empty, and the application rejects
+wildcard, malformed, and non-canonical entries. Never list client networks.
+
+The single-proxy example overwrites `X-Forwarded-For` with `$remote_addr`, so a
+client-supplied value cannot enter the trusted chain. For a controlled
+multi-proxy topology, each trusted proxy may append its verified peer address;
+list every direct intermediary CIDR and test the chain before deployment.
+
+Uvicorn validates the socket peer before updating the ASGI client address. Rate
+limiting and request logs consume only that canonical ASGI address and do not
+parse forwarding headers again. Keep the Gunicorn port firewalled from
+untrusted clients even when the allowlist is configured.
 
 ## 8. Enable HTTPS
 
@@ -386,6 +396,7 @@ trace-context columns; tracing metadata is not a correctness dependency.
 - [ ] Run test, lint, and dependency-audit jobs successfully
 - [ ] Restrict database and service-account permissions
 - [ ] Restrict the application port to the trusted proxy
+- [ ] Set `FORWARDED_ALLOW_IPS` to direct proxy peers only and test spoofed headers
 - [ ] Enable HTTPS and renewal monitoring
 - [ ] Configure logs, metrics, alerts, and retention
 - [ ] Configure database backups and test restoration

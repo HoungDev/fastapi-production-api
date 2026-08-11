@@ -74,6 +74,7 @@ def test_json_formatter_emits_correlation_fields():
     )
     record.request_id = "request-123"
     record.method = "GET"
+    record.client_ip = "192.0.2.10"
     record.route = "/health/live"
     record.status_code = 200
     record.duration_ms = 1.25
@@ -86,6 +87,7 @@ def test_json_formatter_emits_correlation_fields():
     assert payload["message"] == "http_request"
     assert payload["request_id"] == "request-123"
     assert payload["method"] == "GET"
+    assert payload["client_ip"] == "192.0.2.10"
     assert payload["route"] == "/health/live"
     assert payload["status_code"] == 200
     assert payload["duration_ms"] == 1.25
