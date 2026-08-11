@@ -11,6 +11,10 @@ from app.auth.refresh_token import (
 )
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
+from app.services.sessions import (
+    ACCOUNT_DISABLED_REVOCATION_REASON,
+    revoke_all_user_sessions,
+)
 
 ROTATION_REASON = "rotated"
 REPLAY_REASON = "reuse_detected"
@@ -90,6 +94,17 @@ def refresh_access_token(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
+        )
+
+    if not user.is_active:
+        revoke_all_user_sessions(
+            user.id,
+            db,
+            reason=ACCOUNT_DISABLED_REVOCATION_REASON,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
         )
 
     new_refresh_token, expires_at = create_refresh_token()

@@ -290,6 +290,18 @@ curl --request PATCH http://127.0.0.1:8000/admin/users/1/role \
   --data '{"role":"admin"}'
 ```
 
+To disable an account and atomically revoke its refresh-token sessions:
+
+```bash
+curl --request PATCH http://127.0.0.1:8000/admin/users/1/status \
+  --header "Authorization: Bearer ${ADMIN_ACCESS_TOKEN}" \
+  --header "Content-Type: application/json" \
+  --data '{"is_active":false}'
+```
+
+Set `is_active` to `true` to allow new authentication again. Re-enabling an
+account does not restore revoked sessions; the user must sign in again.
+
 Non-admin users receive `403`; an unknown user ID returns `404`.
 
 ## Inspect health and metrics

@@ -30,10 +30,15 @@ class UserRoleUpdate(BaseModel):
     role: str
 
 
+class UserStatusUpdate(BaseModel):
+    is_active: bool
+
+
 class UserAdminResponse(BaseModel):
     id: int
     username: str
     role: str
+    is_active: bool
 
     model_config = ConfigDict(
         from_attributes=True,

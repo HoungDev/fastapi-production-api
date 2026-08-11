@@ -81,54 +81,60 @@ the response omits internal details.
    creates an opaque refresh token, and stores only the refresh-token hash.
 3. Protected routes decode the JWT and validate algorithm, issuer, audience,
    expiration, token type, and subject. The current user is then loaded from the
-   database, so deleted users and role changes take effect without waiting for a
-   new access token.
+   database, so deleted users, disabled users, and role changes take effect
+   without waiting for a new access token.
 4. `POST /auth/refresh` validates the stored token, rejects revoked or expired
    records, locks and revokes the old token, and commits a replacement in the
    same server-generated family. Replay of a rotated token revokes the family's
    live descendant.
 5. `POST /auth/logout` revokes the submitted refresh-token family.
-6. Registration may attach a normalized email identity. Verification requests
+6. Disabling a user through the admin status endpoint atomically marks the
+   account inactive and revokes every refresh-token session. Existing access
+   tokens fail the current-user lookup, and re-enabling the account does not
+   restore revoked sessions.
+7. Registration may attach a normalized email identity. Verification requests
    invalidate older outstanding tokens, persist only a SHA-256 token hash, and
    deliver the raw token through the configured SMTP boundary.
-7. Confirmation locks and atomically consumes the scoped token while setting
+8. Confirmation locks and atomically consumes the scoped token while setting
    `email_verified_at`. Expiry, replay, purpose, and current-email checks occur
    before the transaction commits.
-8. Password-reset requests reuse the account-action token table with a distinct
+9. Password-reset requests reuse the account-action token table with a distinct
    purpose and only accept active, verified email identities without revealing
    eligibility to the caller.
-9. Reset confirmation locks both token and user, updates the password hash,
+10. Reset confirmation locks both token and user, updates the password hash,
    consumes outstanding reset tokens, and revokes every refresh token in one
    transaction. It creates no replacement session.
-10. Authenticated session endpoints aggregate active refresh-token families and
+11. Authenticated session endpoints aggregate active refresh-token families and
     allow idempotent revocation of one or all families while filtering every
     operation by current user ownership.
-11. TOTP enrollment encrypts the authenticator seed with a dedicated Fernet
+12. TOTP enrollment encrypts the authenticator seed with a dedicated Fernet
     key. Confirmation stores only hashes of newly generated recovery codes.
-12. Login for an MFA-enabled account returns a short-lived, opaque challenge
+13. Login for an MFA-enabled account returns a short-lived, opaque challenge
     instead of session tokens. Successful TOTP or recovery verification consumes
     the challenge and creates the device session in one transaction.
-13. Accepted TOTP counters are recorded to reject replay in the same time step.
+14. Accepted TOTP counters are recorded to reject replay in the same time step.
     Access tokens record authentication methods (`amr`) and time (`auth_time`);
     refresh-issued access tokens use `amr=["refresh"]` and cannot satisfy recent
     MFA step-up checks.
-14. OIDC authorization creates a short-lived database transaction containing
+15. OIDC authorization creates a short-lived database transaction containing
     hashes of `state`, nonce, and browser binding plus an encrypted PKCE verifier.
     The authorization request always uses Authorization Code and PKCE S256.
-15. The callback validates browser binding, discovery issuer, ID-token signature,
+16. The callback validates browser binding, discovery issuer, ID-token signature,
     algorithm, issuer, audience, authorized party, lifetime, subject, and nonce
     before consuming the transaction and issuing a local device session.
-16. External identities use immutable `(issuer, subject)` keys. Matching email
+17. External identities use immutable `(issuer, subject)` keys. Matching email
     never links an existing account; linking requires a recent authenticated
     local session. Identity changes revoke refresh sessions.
-17. Optional Redis cache-aside stores only validated public OIDC discovery and
+18. Optional Redis cache-aside stores only validated public OIDC discovery and
     JWKS documents under versioned issuer-digest keys. Every cache read is
     validated again. Misses use a bounded refresh lock; Redis errors bypass to
     the provider. An unknown cached `kid` forces one provider JWKS refresh.
 
 Refresh-token families detect replay and make device-level revocation possible.
-Access tokens are stateless and remain valid until expiration, so clients must
-discard them on logout and deployments must protect the signing secret.
+Access tokens are stateless and logout does not revoke them, so clients must
+discard them on logout and deployments must protect the signing secret. A
+protected request still reloads the user, allowing deletion or account disable
+to reject an otherwise unexpired access token.
 
 ## Authorization model
 

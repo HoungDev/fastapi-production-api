@@ -31,6 +31,7 @@ MARKDOWN_LINK = re.compile(r"(?<!!)\[[^]]+\]\(([^)]+)\)")
 DOCUMENTED_API_PATHS = {
     "/admin/users",
     "/admin/users/{user_id}/role",
+    "/admin/users/{user_id}/status",
     "/auth/logout",
     "/auth/email-verification/confirm",
     "/auth/email-verification/request",

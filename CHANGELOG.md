@@ -8,6 +8,8 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Administrative account disable/re-enable lifecycle with immediate access
+  rejection and atomic refresh-session revocation
 - Optional Redis-backed fixed-window rate limiting shared across API processes
 - Privacy-preserving HMAC client identifiers, atomic counters, and bounded TTLs
 - Explicit fail-closed/fail-open outage policies with readiness and metrics

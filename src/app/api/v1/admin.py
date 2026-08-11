@@ -5,7 +5,11 @@ from app.auth.current_user import get_current_user
 from app.auth.permissions import require_admin
 from app.db.dependency import get_db
 from app.models.user import User
-from app.schemas.user import UserAdminResponse, UserRoleUpdate
+from app.schemas.user import UserAdminResponse, UserRoleUpdate, UserStatusUpdate
+from app.services.sessions import (
+    ACCOUNT_DISABLED_REVOCATION_REASON,
+    revoke_all_user_sessions,
+)
 
 router = APIRouter(
     prefix="/admin",
@@ -85,6 +89,44 @@ def update_user_role(
 
     db.commit()
     db.refresh(user)
+
+    return user
+
+
+@router.patch(
+    "/users/{user_id}/status",
+    response_model=UserAdminResponse,
+)
+def update_user_status(
+    user_id: int,
+    data: UserStatusUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    require_admin(current_user)
+
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    try:
+        user.is_active = data.is_active
+        if data.is_active:
+            db.commit()
+        else:
+            revoke_all_user_sessions(
+                user.id,
+                db,
+                reason=ACCOUNT_DISABLED_REVOCATION_REASON,
+            )
+        db.refresh(user)
+    except Exception:
+        db.rollback()
+        raise
 
     return user
 
