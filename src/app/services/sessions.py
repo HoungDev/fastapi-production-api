@@ -7,6 +7,7 @@ from app.models.refresh_token import RefreshToken
 from app.schemas.session import DeviceSession
 
 USER_REVOCATION_REASON = "user_revoked"
+ACCOUNT_DISABLED_REVOCATION_REASON = "account_disabled"
 
 
 def _as_utc(value: datetime) -> datetime:
@@ -52,8 +53,13 @@ def revoke_session_family(user_id: int, family_id: str, db: Session) -> None:
     _revoke_user_sessions(user_id, db, family_id=family_id)
 
 
-def revoke_all_user_sessions(user_id: int, db: Session) -> None:
-    _revoke_user_sessions(user_id, db)
+def revoke_all_user_sessions(
+    user_id: int,
+    db: Session,
+    *,
+    reason: str = USER_REVOCATION_REASON,
+) -> None:
+    _revoke_user_sessions(user_id, db, reason=reason)
 
 
 def _revoke_user_sessions(
@@ -61,6 +67,7 @@ def _revoke_user_sessions(
     db: Session,
     *,
     family_id: str | None = None,
+    reason: str = USER_REVOCATION_REASON,
 ) -> None:
     now = datetime.now(UTC)
     statement = update(RefreshToken).where(
@@ -75,7 +82,7 @@ def _revoke_user_sessions(
             statement.values(
                 revoked=True,
                 revoked_at=now,
-                revocation_reason=USER_REVOCATION_REASON,
+                revocation_reason=reason,
             )
         )
         db.commit()

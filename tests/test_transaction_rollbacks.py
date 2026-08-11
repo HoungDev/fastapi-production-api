@@ -59,6 +59,7 @@ def test_login_rolls_back_when_refresh_token_commit_fails():
         password="hashed-password",
         password_login_enabled=True,
         mfa_enabled_at=None,
+        is_active=True,
     )
     db.commit.side_effect = RuntimeError("database unavailable")
     form_data = SimpleNamespace(username="houngdev", password="secret123")

@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.auth.jwt import create_access_token
@@ -20,10 +21,26 @@ def prepare_session_tokens(
     *,
     authentication_methods: list[str],
 ) -> Token:
+    # SessionLocal disables autoflush. Preserve pending security state, such as
+    # an accepted MFA counter, before populate_existing reloads the locked row.
+    db.flush()
+    active_user = (
+        db.query(User)
+        .filter(User.id == user.id)
+        .populate_existing()
+        .with_for_update()
+        .first()
+    )
+    if active_user is None or not active_user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication is not available",
+        )
+
     authenticated_at = datetime.now(UTC)
     access_token = create_access_token(
         {
-            "sub": user.username,
+            "sub": active_user.username,
             "amr": authentication_methods,
             "auth_time": int(authenticated_at.timestamp()),
         }
@@ -31,7 +48,7 @@ def prepare_session_tokens(
     refresh_token, expires_at = create_refresh_token()
     db.add(
         RefreshToken(
-            user_id=user.id,
+            user_id=active_user.id,
             family_id=create_refresh_token_family_id(),
             token=hash_refresh_token(refresh_token),
             expires_at=expires_at,

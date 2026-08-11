@@ -32,7 +32,7 @@ def login(
 ):
     user = db.query(User).filter(User.username == form_data.username).first()
 
-    if not user:
+    if not user or not user.is_active:
         raise HTTPException(
             status_code=401,
             detail="Invalid username or password",

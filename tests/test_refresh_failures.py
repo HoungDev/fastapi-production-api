@@ -88,6 +88,24 @@ def test_refresh_rejects_token_for_missing_user():
     assert_unauthorized(error, "User not found")
 
 
+def test_refresh_rejects_inactive_user_and_revokes_sessions():
+    stored_token = SimpleNamespace(
+        revoked=False,
+        expires_at=datetime.now(UTC) + timedelta(days=1),
+        user_id=123,
+        family_id="family-1",
+    )
+    user = SimpleNamespace(id=123, username="houngdev", is_active=False)
+    db = database_with_results(stored_token, user)
+
+    with pytest.raises(HTTPException) as error:
+        refresh_access_token("inactive-user-token", db)
+
+    assert_unauthorized(error, "Invalid refresh token")
+    db.execute.assert_called_once()
+    db.commit.assert_called_once_with()
+
+
 def test_refresh_rolls_back_when_rotation_commit_fails():
     stored_token = SimpleNamespace(
         revoked=False,
@@ -96,7 +114,7 @@ def test_refresh_rolls_back_when_rotation_commit_fails():
         family_id="family-1",
         device_name="Test device",
     )
-    user = SimpleNamespace(id=123, username="houngdev")
+    user = SimpleNamespace(id=123, username="houngdev", is_active=True)
     db = database_with_results(stored_token, user)
     db.commit.side_effect = RuntimeError("database unavailable")
 

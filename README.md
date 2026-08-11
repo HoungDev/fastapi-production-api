@@ -179,6 +179,7 @@ and safe extension points.
 | `GET` | `/auth/oidc/identities` | List linked external identity providers |
 | `GET` | `/auth/me` | Return the authenticated user |
 | `GET` | `/admin/users` | List users as an admin |
+| `PATCH` | `/admin/users/{user_id}/status` | Disable or re-enable a user and revoke sessions on disable |
 
 The generated OpenAPI document at `/docs` is the source of truth for the full
 request and response schemas.
