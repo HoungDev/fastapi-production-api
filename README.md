@@ -77,6 +77,7 @@ contributor workflows, and local troubleshooting.
 | --- | --- |
 | [API examples](API_EXAMPLES.md) | Register, authenticate, rotate tokens, call admin routes, and inspect operations endpoints |
 | [Architecture](ARCHITECTURE.md) | Understand module boundaries, request flow, authentication, transactions, and extension points |
+| [Database benchmarks](DATABASE_BENCHMARKS.md) | Reproduce sync/async PostgreSQL comparisons and understand the v1.3 architecture decision |
 | [Local development](DEVELOPMENT.md) | Set up a checkout, run common commands, contribute, or troubleshoot locally |
 | [Deployment](DEPLOYMENT.md) | Configure a production host, release safely, terminate TLS, and operate the service |
 | [Monitoring](MONITORING.md) | Configure probes, Prometheus, multi-worker metrics, alerts, logs, and incident diagnosis |
@@ -243,6 +244,11 @@ python scripts/dev.py check
 Pytest measures statement and branch coverage for the application packages and
 fails below 90%. CI also publishes `coverage.xml` as a workflow artifact for
 review and downstream reporting.
+
+CI also runs a bounded PostgreSQL correctness smoke test for the isolated sync
+and async database benchmark and uploads its machine-readable JSON artifact.
+See [DATABASE_BENCHMARKS.md](DATABASE_BENCHMARKS.md); shared-runner timings are
+not used as performance gates.
 
 CI runs against PostgreSQL 17 rather than silently substituting SQLite. It also
 verifies that the built wheel contains and can import the application.

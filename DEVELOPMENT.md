@@ -100,6 +100,15 @@ The test database is flushed before and after these tests. Never point
 Worker concurrency tests require PostgreSQL because SQLite does not implement
 `FOR UPDATE SKIP LOCKED`. The standard CI job runs these tests on PostgreSQL.
 
+## Database performance evaluation
+
+The opt-in benchmark compares the maintained synchronous engine with a separate
+asyncpg prototype without changing application code. It requires an explicitly
+named local/test database and owns only the `fastapi_benchmark` schema. Run the
+short smoke workflow or the controlled extended matrix in
+[DATABASE_BENCHMARKS.md](DATABASE_BENCHMARKS.md). Never use production
+credentials or infer performance regressions from CI runner timings.
+
 ## Typical contribution workflow
 
 ```bash

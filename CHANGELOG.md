@@ -24,6 +24,11 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - W3C Trace Context propagation through bounded outbox metadata, JSON log
   `trace_id`/`span_id` correlation, OTLP/HTTP export, sampling controls, and
   secret-redaction safeguards
+- Reproducible PostgreSQL benchmark harness with deterministic isolated fixtures,
+  sync/async query parity, latency percentiles, pool telemetry, and JSON output
+- CI correctness smoke coverage for the asyncpg prototype and rollback semantics
+- Architecture decision retaining synchronous SQLAlchemy for v1.3.0 until
+  representative measurements justify a separately scoped migration
 
 ## [1.2.0] - 2026-08-09
 
