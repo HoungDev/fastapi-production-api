@@ -21,6 +21,9 @@ def prepare_session_tokens(
     *,
     authentication_methods: list[str],
 ) -> Token:
+    # SessionLocal disables autoflush. Preserve pending security state, such as
+    # an accepted MFA counter, before populate_existing reloads the locked row.
+    db.flush()
     active_user = (
         db.query(User)
         .filter(User.id == user.id)
