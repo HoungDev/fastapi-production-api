@@ -86,4 +86,3 @@ Establish a baseline before looking for capacity limits:
 CI shared runners should only validate correctness and script structure. Do not
 use their timings as a release performance gate. A release gate belongs in a
 controlled staging environment with stable infrastructure and retained results.
-
