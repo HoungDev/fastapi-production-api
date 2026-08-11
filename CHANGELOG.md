@@ -29,6 +29,10 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - CI correctness smoke coverage for the asyncpg prototype and rollback semantics
 - Architecture decision retaining synchronous SQLAlchemy for v1.3.0 until
   representative measurements justify a separately scoped migration
+- Guarded k6 load-testing profiles for health baselines, authenticated reads,
+  and isolated per-virtual-user refresh-token rotation
+- Explicit workload error-rate and p95/p99 starting thresholds plus a staged,
+  repeatable measurement guide for controlled environments
 
 ## [1.2.0] - 2026-08-09
 
@@ -127,3 +131,4 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 [1.1.0]: https://github.com/HoungDev/fastapi-production-api/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/HoungDev/fastapi-production-api/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/HoungDev/fastapi-production-api/releases/tag/v1.0.0
+
