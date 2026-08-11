@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fastapi-production-api-config
+data:
+  APP_NAME: FastAPI Production API
+  ENVIRONMENT: production
+  DEBUG: "false"
+  LOG_LEVEL: INFO
+  CORS_ORIGINS: https://your-frontend.example
+  RATE_LIMIT_BACKEND: redis
+  RATE_LIMIT_LIMIT: "100"
+  RATE_LIMIT_WINDOW_SECONDS: "60"
+  RATE_LIMIT_FAILURE_MODE: closed
+  EMAIL_DELIVERY_MODE: outbox
+  EMAIL_VERIFICATION_URL: https://your-frontend.example/verify-email
+  PASSWORD_RESET_URL: https://your-frontend.example/reset-password
+  MFA_ENABLED: "true"
+  OIDC_ENABLED: "false"
+  TRACING_ENABLED: "false"
+  OTEL_SERVICE_NAME: fastapi-production-api
+  OTEL_TRACE_SAMPLE_RATIO: "0.1"

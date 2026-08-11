@@ -67,7 +67,7 @@ Status: in progress
 Status: exploratory
 
 - Container image and Compose development stack (completed)
-- Kubernetes deployment example
+- Kubernetes deployment example (completed)
 - Cloud deployment guides
 - Backup, disaster recovery, and operational runbooks
 - Advanced policy and audit capabilities

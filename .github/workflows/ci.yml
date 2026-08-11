@@ -76,6 +76,20 @@ jobs:
       - name: Check formatting
         run: uv run ruff format --check .
 
+      - name: Validate Kubernetes manifests
+        run: |
+          kubectl_version=v1.35.6
+          curl --fail --silent --show-error --location \
+            "https://dl.k8s.io/release/${kubectl_version}/bin/linux/amd64/kubectl" \
+            --output kubectl
+          curl --fail --silent --show-error --location \
+            "https://dl.k8s.io/release/${kubectl_version}/bin/linux/amd64/kubectl.sha256" \
+            --output kubectl.sha256
+          echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+          chmod +x kubectl
+          ./kubectl kustomize deploy/kubernetes > rendered-kubernetes.yaml
+          test -s rendered-kubernetes.yaml
+
       - name: Run database migrations
         run: uv run alembic upgrade head
 

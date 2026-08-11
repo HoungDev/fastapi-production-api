@@ -8,6 +8,8 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Platform-neutral Kubernetes Kustomize base with hardened API pods, probes,
+  HPA, disruption budget, ingress policy, migration-job template, and CI render validation
 - Multi-stage production container image with locked runtime-only dependencies,
   non-root execution, liveness healthcheck, Compose migrations, and CI smoke tests
 - Explicit trusted-proxy IP/CIDR allowlisting for Uvicorn client-address

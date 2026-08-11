@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: fastapi-production-api-migrate-
+  namespace: fastapi-production-api
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: fastapi-production-api
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: migrate
+          image: ghcr.io/houngdev/fastapi-production-api:replace-with-an-immutable-image-tag
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            - configMapRef:
+                name: fastapi-production-api-config
+            - secretRef:
+                name: fastapi-production-api-secrets
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001

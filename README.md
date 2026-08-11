@@ -88,6 +88,7 @@ runs migrations once before starting the non-root API container.
 | [Architecture](ARCHITECTURE.md) | Understand module boundaries, request flow, authentication, transactions, and extension points |
 | [Database benchmarks](DATABASE_BENCHMARKS.md) | Reproduce sync/async PostgreSQL comparisons and understand the v1.3 architecture decision |
 | [Load testing](LOAD_TESTING.md) | Exercise health and authenticated HTTP lifecycles with bounded k6 workloads and explicit thresholds |
+| [Kubernetes deployment](deploy/kubernetes/README.md) | Deploy the production image with Kustomize, probes, scaling, and hardened pod settings |
 | [Local development](DEVELOPMENT.md) | Set up a checkout, run common commands, contribute, or troubleshoot locally |
 | [Deployment](DEPLOYMENT.md) | Configure a production host, release safely, terminate TLS, and operate the service |
 | [Monitoring](MONITORING.md) | Configure probes, Prometheus, multi-worker metrics, alerts, logs, and incident diagnosis |

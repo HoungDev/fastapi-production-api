@@ -64,6 +64,10 @@ command. Use `/health/live` for container restart decisions and `/health/ready`
 for traffic admission. The image healthcheck intentionally uses liveness so a
 temporary database outage does not create a restart loop.
 
+For a platform-neutral Kubernetes Kustomize base with hardened pods, autoscaling,
+disruption protection, and migration guidance, see
+[deploy/kubernetes/README.md](deploy/kubernetes/README.md).
+
 ## 1. Prepare the server
 
 Recommended baseline:
