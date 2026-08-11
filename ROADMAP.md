@@ -1,3 +1,4 @@
+
 # Roadmap
 
 FastAPI Production API aims to be a practical, security-focused foundation for
@@ -59,7 +60,7 @@ Status: in progress
 - Transactional outbox and background worker processing (completed)
 - Safe OIDC discovery/JWKS caching and invalidation guidance (completed)
 - Async database evaluation and performance benchmarks (completed; sync retained)
-- Load-testing examples
+- Load-testing examples (completed)
 - OpenTelemetry tracing example (completed)
 
 ## v2.0 — Deployment patterns at scale
@@ -77,3 +78,4 @@ Status: exploratory
 Use GitHub Discussions to propose or validate larger ideas. Once the problem and
 scope are clear, an issue can track implementation. Small issues labeled
 `good first issue` or `help wanted` are the best entry points for contributors.
+
