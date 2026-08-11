@@ -46,6 +46,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql+psycopg://fastapi_user:fastapi_password@localhost:5432/fastapi_test
+      BENCHMARK_DATABASE_URL: postgresql+psycopg://fastapi_user:fastapi_password@localhost:5432/fastapi_test
       SECRET_KEY: ci-only-secret-key-with-at-least-32-bytes
       JWT_AUDIENCE: fastapi-client
       JWT_ISSUER: fastapi-production-api
@@ -80,6 +81,32 @@ jobs:
 
       - name: Run tests
         run: uv run pytest --cov-report=xml
+
+      - name: Run database benchmark smoke test
+        run: |
+          uv run python -m benchmarks.db prepare --records 25
+          uv run python -m benchmarks.db run \
+            --mode both \
+            --scenarios authenticated_read refresh_rotation \
+            --iterations 8 \
+            --warmup 2 \
+            --concurrency 2 \
+            --pool-size 2 \
+            --output benchmark-smoke.json
+          uv run python -m benchmarks.db verify-async-rollback
+
+      - name: Clean up database benchmark fixtures
+        if: always()
+        run: uv run python -m benchmarks.db cleanup
+
+      - name: Upload database benchmark smoke result
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: database-benchmark-smoke
+          path: benchmark-smoke.json
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v7

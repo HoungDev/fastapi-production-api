@@ -42,6 +42,7 @@ when distributed rate limiting is enabled.
 | Error boundary | `src/app/exceptions/` | Stable client errors and safe unexpected-error responses |
 | Schema evolution | `alembic/` | Ordered PostgreSQL migrations |
 | Verification | `tests/` | Endpoint, security, failure-path, and operational tests |
+| Database evaluation | `benchmarks/` | Opt-in sync baseline and isolated async prototype; never imported by production startup |
 
 Routers should remain thin: validate input, compose dependencies and services,
 and translate results into HTTP responses. Reusable authentication or database
@@ -145,6 +146,13 @@ for schema changes.
 
 Production releases should run migrations once before starting new application
 workers. Do not let every worker race to apply schema changes.
+
+The production persistence path remains synchronous for v1.3.0. The asyncpg
+engine under `benchmarks/` exists only for controlled comparison and preserves
+equivalent SQL and transaction boundaries. It is not an alternate application
+dependency. See [DATABASE_BENCHMARKS.md](DATABASE_BENCHMARKS.md) and
+[ADR 0001](docs/decisions/0001-keep-sync-sqlalchemy.md) for the evidence gate
+and decision rationale.
 
 In transactional delivery mode, the lifecycle token and encrypted outbox row
 commit together. Workers claim due rows in short `FOR UPDATE SKIP LOCKED`

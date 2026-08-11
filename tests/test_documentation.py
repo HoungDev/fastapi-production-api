@@ -15,6 +15,7 @@ DOCUMENTS = [
         "CHANGELOG.md",
         "CODE_OF_CONDUCT.md",
         "CONTRIBUTING.md",
+        "DATABASE_BENCHMARKS.md",
         "DEPLOYMENT.md",
         "DEVELOPMENT.md",
         "MONITORING.md",
@@ -24,6 +25,7 @@ DOCUMENTS = [
         "SECURITY.md",
     )
 ]
+DOCUMENTS.append(PROJECT_ROOT / "docs" / "decisions" / "0001-keep-sync-sqlalchemy.md")
 MARKDOWN_LINK = re.compile(r"(?<!!)\[[^]]+\]\(([^)]+)\)")
 DOCUMENTED_API_PATHS = {
     "/admin/users",
@@ -86,6 +88,7 @@ def test_readme_indexes_the_task_guides():
     for guide in (
         "API_EXAMPLES.md",
         "ARCHITECTURE.md",
+        "DATABASE_BENCHMARKS.md",
         "DEPLOYMENT.md",
         "DEVELOPMENT.md",
         "MONITORING.md",

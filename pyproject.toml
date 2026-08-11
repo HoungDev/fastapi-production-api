@@ -74,6 +74,7 @@ module-name = ["app", "fastapi_production_api"]
 
 [dependency-groups]
 dev = [
+    "asyncpg>=0.31.0,<1",
     "httpx2>=2.7.0",
     "pip-audit>=2.9.0",
     "pytest>=9.1.1",
@@ -83,6 +84,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "-ra --cov --cov-report=term-missing --cov-fail-under=90"
 
 [tool.coverage.run]
