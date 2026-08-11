@@ -1,4 +1,3 @@
-
 import re
 from pathlib import Path
 from urllib.parse import unquote
@@ -111,4 +110,3 @@ def test_hidden_documented_metrics_endpoint_is_reachable():
 
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/plain")
-
