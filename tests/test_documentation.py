@@ -1,3 +1,4 @@
+
 import re
 from pathlib import Path
 from urllib.parse import unquote
@@ -16,6 +17,7 @@ DOCUMENTS = [
         "CODE_OF_CONDUCT.md",
         "CONTRIBUTING.md",
         "DATABASE_BENCHMARKS.md",
+        "LOAD_TESTING.md",
         "DEPLOYMENT.md",
         "DEVELOPMENT.md",
         "MONITORING.md",
@@ -89,6 +91,7 @@ def test_readme_indexes_the_task_guides():
         "API_EXAMPLES.md",
         "ARCHITECTURE.md",
         "DATABASE_BENCHMARKS.md",
+        "LOAD_TESTING.md",
         "DEPLOYMENT.md",
         "DEVELOPMENT.md",
         "MONITORING.md",
@@ -108,3 +111,4 @@ def test_hidden_documented_metrics_endpoint_is_reachable():
 
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/plain")
+
