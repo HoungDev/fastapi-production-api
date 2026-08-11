@@ -126,6 +126,12 @@ def services_up() -> None:
     run_command(["docker", "compose", "up", "-d", "--wait", "postgres", "redis"])
 
 
+def stack_up() -> None:
+    require_docker_engine()
+    ensure_env()
+    run_command(["docker", "compose", "up", "--build", "-d", "--wait"])
+
+
 def database_down() -> None:
     require_docker_engine()
     run_command(["docker", "compose", "down"])
@@ -165,6 +171,9 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "db-up", help="Start and wait for local PostgreSQL and Redis."
     )
+    subparsers.add_parser(
+        "stack-up", help="Build and start the complete containerized stack."
+    )
     subparsers.add_parser("db-down", help="Stop local Compose services.")
     subparsers.add_parser("check", help="Run the complete CI-equivalent quality gate.")
     return parser
@@ -176,6 +185,7 @@ def main(argv: list[str] | None = None) -> int:
         "serve": serve,
         "migrate": migrate,
         "db-up": services_up,
+        "stack-up": stack_up,
         "db-down": database_down,
         "check": check,
     }

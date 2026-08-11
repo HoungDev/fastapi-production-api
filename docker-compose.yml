@@ -1,3 +1,7 @@
+x-api-environment: &api-environment
+  DATABASE_URL: postgresql+psycopg://fastapi_user:fastapi_password@postgres:5432/fastapi_db
+  REDIS_URL: redis://redis:6379/0
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -37,6 +41,50 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  migrate:
+    build:
+      context: .
+      target: runtime
+    image: fastapi-production-api:local
+    command: ["alembic", "upgrade", "head"]
+    env_file: .env
+    environment: *api-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      target: runtime
+    image: fastapi-production-api:local
+    env_file: .env
+    environment: *api-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
 
 volumes:
   postgres_data:

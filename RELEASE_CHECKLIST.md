@@ -51,6 +51,8 @@ python scripts/dev.py check
 - [ ] Dependency audit passes with `uv run pip-audit`.
 - [ ] Distribution build passes with `uv build`.
 - [ ] The release wheel is smoke-tested in an isolated environment.
+- [ ] The production image builds from the lockfile, runs as non-root, and
+  passes liveness/readiness smoke tests with a read-only root filesystem.
 - [ ] Alembic has exactly one head.
 - [ ] The full migration chain upgrades successfully to `head`.
 - [ ] The newest migration's rollback/forward procedure was verified against

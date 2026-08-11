@@ -52,6 +52,17 @@ Open <http://127.0.0.1:8000/docs>. To create a local user, call `POST
 /register/` from Swagger UI; the repository intentionally does not ship a
 shared demo password.
 
+To exercise the production image locally, start the complete Compose stack:
+
+```bash
+python scripts/dev.py stack-up
+```
+
+The one-shot `migrate` service applies migrations before `api` starts. The API
+container runs without root privileges, Linux capabilities, or a writable root
+filesystem. Inspect it with `docker compose ps` and `docker compose logs api`,
+then stop it without deleting database data using `docker compose down`.
+
 ## Run durable email workers
 
 Generate a dedicated Fernet key, set `EMAIL_DELIVERY_MODE=outbox`, configure
@@ -78,6 +89,7 @@ missing or different from the key used to enqueue pending payloads.
 | Command | Purpose |
 | --- | --- |
 | `python scripts/dev.py db-up` | Start PostgreSQL and Redis and wait until healthy |
+| `python scripts/dev.py stack-up` | Build and start the complete containerized stack |
 | `python scripts/dev.py db-down` | Stop Compose services without deleting data |
 | `python scripts/dev.py migrate` | Apply pending Alembic migrations |
 | `python scripts/dev.py serve` | Run Uvicorn with auto-reload |

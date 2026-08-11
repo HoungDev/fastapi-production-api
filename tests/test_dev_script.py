@@ -127,6 +127,19 @@ def test_database_commands_use_compose_without_deleting_data(monkeypatch):
     assert ["docker", "compose", "down", "--volumes"] not in commands
 
 
+def test_stack_up_prepares_env_and_builds_the_complete_stack(monkeypatch):
+    monkeypatch.setattr(dev, "require_docker_engine", lambda: None)
+    prepared = []
+    monkeypatch.setattr(dev, "ensure_env", lambda: prepared.append(True))
+    commands = []
+    monkeypatch.setattr(dev, "run_command", commands.append)
+
+    dev.stack_up()
+
+    assert prepared == [True]
+    assert commands == [["docker", "compose", "up", "--build", "-d", "--wait"]]
+
+
 def test_docker_preflight_explains_unavailable_engine(monkeypatch):
     monkeypatch.setattr(dev, "require_command", lambda _: None)
     monkeypatch.setattr(

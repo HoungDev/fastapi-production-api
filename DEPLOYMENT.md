@@ -28,11 +28,41 @@ at the container level.
 | Single Linux host | Nginx -> Gunicorn -> Uvicorn workers | Small services with direct host operations |
 | Container platform | Load balancer -> one Uvicorn process per container | Platforms that own restarts, health probes, and horizontal scaling |
 
-This repository includes a complete single-host example below. It does not yet
-ship a production image or orchestration manifest. On a container platform, use
-the same locked install and migration rules, start the application with
-`uv run uvicorn app.main:app --host 0.0.0.0 --port 8000`, configure liveness and
-readiness separately, and expose `/metrics` only to the monitoring network.
+This repository includes both the complete single-host example below and a
+multi-stage production `Dockerfile`. The image runs one Uvicorn process as an
+unprivileged user, contains only locked runtime dependencies, and provides a
+liveness healthcheck. Container platforms must still configure readiness,
+release migrations, secrets, ingress, and restricted metrics exposure.
+
+## Production container image
+
+Build an immutable image from a reviewed tag or commit:
+
+```bash
+docker build --pull --tag fastapi-production-api:<version> .
+```
+
+The runtime image does not contain the source checkout, `uv`, test tools, or an
+environment file. Inject configuration at runtime and run migrations as a
+separate release task before starting application replicas:
+
+```bash
+docker run --rm --env-file .env \
+  fastapi-production-api:<version> alembic upgrade head
+
+docker run --detach --name fastapi-production-api \
+  --env-file .env \
+  --publish 8000:8000 \
+  --read-only --tmpfs /tmp \
+  --cap-drop ALL --security-opt no-new-privileges:true \
+  fastapi-production-api:<version>
+```
+
+Ensure database, Redis, SMTP, OIDC, and telemetry hostnames in `.env` resolve
+from the container network. Do not run migrations in every replica's startup
+command. Use `/health/live` for container restart decisions and `/health/ready`
+for traffic admission. The image healthcheck intentionally uses liveness so a
+temporary database outage does not create a restart loop.
 
 ## 1. Prepare the server
 
@@ -394,6 +424,7 @@ trace-context columns; tracing metadata is not a correctness dependency.
 - [ ] Back up the production database
 - [ ] Test migrations and rollback procedures in staging
 - [ ] Run test, lint, and dependency-audit jobs successfully
+- [ ] Build the production image and smoke-test liveness/readiness as non-root
 - [ ] Restrict database and service-account permissions
 - [ ] Restrict the application port to the trusted proxy
 - [ ] Set `FORWARDED_ALLOW_IPS` to direct proxy peers only and test spoofed headers
