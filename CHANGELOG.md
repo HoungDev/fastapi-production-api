@@ -131,4 +131,3 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 [1.1.0]: https://github.com/HoungDev/fastapi-production-api/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/HoungDev/fastapi-production-api/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/HoungDev/fastapi-production-api/releases/tag/v1.0.0
-
