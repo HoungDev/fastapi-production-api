@@ -8,6 +8,8 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Multi-stage production container image with locked runtime-only dependencies,
+  non-root execution, liveness healthcheck, Compose migrations, and CI smoke tests
 - Explicit trusted-proxy IP/CIDR allowlisting for Uvicorn client-address
   resolution, with canonical client IPs shared by rate limiting and request logs
 - Administrative account disable/re-enable lifecycle with immediate access

@@ -128,3 +128,42 @@ jobs:
           "import tomllib; from app.main import app;
           expected = tomllib.load(open('pyproject.toml', 'rb'))['project']['version'];
           assert app.version == expected, (app.version, expected)"
+
+      - name: Build production container image
+        run: docker build --tag fastapi-production-api:ci .
+
+      - name: Verify production container identity and dependencies
+        run: |
+          test "$(docker run --rm --entrypoint id fastapi-production-api:ci -u)" = "10001"
+          docker run --rm --entrypoint python fastapi-production-api:ci -c \
+            "import importlib.util; assert importlib.util.find_spec('pytest') is None"
+
+      - name: Smoke-test production container
+        run: |
+          docker run --detach \
+            --name fastapi-production-api-ci \
+            --network host \
+            --read-only \
+            --tmpfs /tmp \
+            --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --env DATABASE_URL="$DATABASE_URL" \
+            --env SECRET_KEY="$SECRET_KEY" \
+            fastapi-production-api:ci
+
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/health/live \
+              && curl --fail --silent http://127.0.0.1:8000/health/ready; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+
+      - name: Show production container logs
+        if: failure()
+        run: docker logs fastapi-production-api-ci 2>/dev/null || true
+
+      - name: Remove production container
+        if: always()
+        run: docker rm --force fastapi-production-api-ci 2>/dev/null || true

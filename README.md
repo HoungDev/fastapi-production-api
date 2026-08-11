@@ -29,7 +29,7 @@ security middleware, automated tests, and a release-ready GitHub workflow.
 | API hardening | CORS, security headers, rate limiting, and error handlers |
 | Reliability | Liveness/readiness probes, transaction rollback, and request logging |
 | Quality | Pytest, Ruff, dependency audit, and GitHub Actions CI |
-| Operations | Environment-based configuration and Gunicorn/Uvicorn guidance |
+| Operations | Non-root production image, Compose stack, and Gunicorn/Uvicorn guidance |
 
 ## Quick start
 
@@ -70,6 +70,15 @@ Open:
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for individual commands, manual setup,
 contributor workflows, and local troubleshooting.
+
+To build and run the complete containerized development stack instead:
+
+```bash
+python scripts/dev.py stack-up
+```
+
+The helper creates `.env` with generated local secrets when needed. Compose
+runs migrations once before starting the non-root API container.
 
 ## Documentation map
 
@@ -274,7 +283,8 @@ Read [DEPLOYMENT.md](DEPLOYMENT.md) for the reverse proxy, systemd, TLS, and
 deployment checklist, and [MONITORING.md](MONITORING.md) for probes, Prometheus,
 multi-worker metrics, alerting, and troubleshooting. Container orchestration
 platforms should normally run one Uvicorn process per container and scale at
-the container level.
+the container level. The included multi-stage `Dockerfile` installs only locked
+runtime dependencies and runs as UID/GID `10001`.
 
 ## Known limitations
 
@@ -288,8 +298,9 @@ the container level.
   exact redirect configuration, and application-specific threat-model review.
 - TOTP reduces password-only risk but is not phishing resistant. Prefer
   WebAuthn/passkeys when the application requires phishing-resistant MFA.
-- The provided Docker Compose service runs PostgreSQL for local development; it
-  does not yet build or deploy the API container.
+- The Compose stack is intended for local development and evaluation. Production
+  scheduling, ingress, secret injection, and persistent services remain
+  platform responsibilities.
 - Deployment defaults must be reviewed for your traffic, proxy topology,
   secrets platform, backup policy, and compliance requirements.
 
