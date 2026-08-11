@@ -2,6 +2,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.middlewares import rate_limit
 from app.middlewares.rate_limit import RateLimitDecision, setup_rate_limit
@@ -104,3 +105,27 @@ def test_exempt_path_never_calls_backend(monkeypatch):
     response = TestClient(create_test_app()).get("/health/live")
 
     assert response.status_code == 200
+
+
+def test_rate_limiter_uses_client_resolved_by_trusted_proxy(monkeypatch):
+    clients = []
+
+    class RecordingLimiter:
+        def check(self, client):
+            clients.append(client)
+            return RateLimitDecision(allowed=True, retry_after=1)
+
+    monkeypatch.setattr(rate_limit.settings, "RATE_LIMIT_BACKEND", "memory")
+    monkeypatch.setattr(rate_limit, "rate_limiter", RecordingLimiter())
+    app = ProxyHeadersMiddleware(
+        create_test_app(),
+        trusted_hosts="10.0.0.0/8",
+    )
+
+    response = TestClient(app, client=("10.0.0.3", 12345)).get(
+        "/protected",
+        headers={"X-Forwarded-For": "203.0.113.99, 198.51.100.20, 10.0.0.2"},
+    )
+
+    assert response.status_code == 200
+    assert clients == ["198.51.100.20"]

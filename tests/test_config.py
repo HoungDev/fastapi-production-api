@@ -1,3 +1,6 @@
+import runpy
+from pathlib import Path
+
 import pytest
 from cryptography.fernet import Fernet
 
@@ -211,6 +214,39 @@ def test_rate_limit_numeric_settings_are_bounded():
             RATE_LIMIT_LIMIT=0,
             _env_file=None,
         )
+
+
+def test_trusted_proxy_allowlist_accepts_addresses_and_canonical_networks():
+    configured = Settings(
+        DATABASE_URL="sqlite:///test.db",
+        SECRET_KEY="local-test-secret",
+        FORWARDED_ALLOW_IPS="127.0.0.1,10.0.0.0/8,2001:db8::/32",
+        _env_file=None,
+    )
+
+    assert configured.FORWARDED_ALLOW_IPS == "127.0.0.1,10.0.0.0/8,2001:db8::/32"
+
+
+@pytest.mark.parametrize(
+    "allowlist",
+    ("*", "not-an-address", "10.1.2.3/8", "127.0.0.1,"),
+)
+def test_trusted_proxy_allowlist_rejects_unsafe_values(allowlist):
+    with pytest.raises(ValueError, match="FORWARDED_ALLOW_IPS"):
+        Settings(
+            DATABASE_URL="sqlite:///test.db",
+            SECRET_KEY="local-test-secret",
+            FORWARDED_ALLOW_IPS=allowlist,
+            _env_file=None,
+        )
+
+
+def test_gunicorn_uses_the_validated_trusted_proxy_allowlist(monkeypatch):
+    monkeypatch.setattr(settings, "FORWARDED_ALLOW_IPS", "10.0.0.0/8")
+
+    config = runpy.run_path(str(Path(__file__).parents[1] / "gunicorn.conf.py"))
+
+    assert config["forwarded_allow_ips"] == "10.0.0.0/8"
 
 
 def test_outbox_mode_requires_complete_secure_configuration():

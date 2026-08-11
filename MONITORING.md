@@ -89,7 +89,9 @@ configuration marks worker gauge files as dead when workers exit.
 
 Every application log is a single JSON object containing `timestamp`, `level`,
 `logger`, `message`, and `request_id`. HTTP completion records also contain
-`method`, `path`, `route`, `status_code`, and `duration_ms`.
+`method`, canonical `client_ip`, `path`, `route`, `status_code`, and
+`duration_ms`. Treat client addresses as personal or security-sensitive data:
+restrict log access and choose a retention period appropriate to local policy.
 
 When a valid OpenTelemetry span is active, the same JSON record also contains
 hexadecimal `trace_id` and `span_id` values. This allows operators to correlate

@@ -49,6 +49,7 @@ class JsonFormatter(logging.Formatter):
 
         for field in (
             "method",
+            "client_ip",
             "path",
             "route",
             "status_code",

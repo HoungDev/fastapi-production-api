@@ -1,3 +1,4 @@
+import ipaddress
 from typing import Literal, Self
 from urllib.parse import urlsplit
 
@@ -29,6 +30,8 @@ class Settings(BaseSettings):
     JWT_ISSUER: str = "fastapi-production-api"
 
     CORS_ORIGINS: str = ""
+
+    FORWARDED_ALLOW_IPS: str = ""
 
     REDIS_URL: SecretStr = SecretStr("")
 
@@ -156,6 +159,31 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> Self:
+        trusted_proxies = self.FORWARDED_ALLOW_IPS.split(",")
+        if self.FORWARDED_ALLOW_IPS and any(
+            not value.strip() for value in trusted_proxies
+        ):
+            raise ValueError("FORWARDED_ALLOW_IPS must not contain empty entries")
+
+        for trusted_proxy in trusted_proxies:
+            trusted_proxy = trusted_proxy.strip()
+            if not trusted_proxy:
+                continue
+
+            if trusted_proxy == "*":
+                raise ValueError("FORWARDED_ALLOW_IPS must not trust every client")
+
+            try:
+                if "/" in trusted_proxy:
+                    ipaddress.ip_network(trusted_proxy, strict=True)
+                else:
+                    ipaddress.ip_address(trusted_proxy)
+            except ValueError as exc:
+                raise ValueError(
+                    "FORWARDED_ALLOW_IPS must contain only valid IP addresses "
+                    "or canonical CIDR networks"
+                ) from exc
+
         if self.RATE_LIMIT_BACKEND == "redis" or self.OIDC_CACHE_BACKEND == "redis":
             redis_url_value = self.REDIS_URL.get_secret_value()
             redis_url = urlsplit(redis_url_value)

@@ -8,6 +8,8 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Explicit trusted-proxy IP/CIDR allowlisting for Uvicorn client-address
+  resolution, with canonical client IPs shared by rate limiting and request logs
 - Administrative account disable/re-enable lifecycle with immediate access
   rejection and atomic refresh-session revocation
 - Optional Redis-backed fixed-window rate limiting shared across API processes
