@@ -29,6 +29,10 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - CI correctness smoke coverage for the asyncpg prototype and rollback semantics
 - Architecture decision retaining synchronous SQLAlchemy for v1.3.0 until
   representative measurements justify a separately scoped migration
+- Guarded k6 load-testing profiles for health baselines, authenticated reads,
+  and isolated per-virtual-user refresh-token rotation
+- Explicit workload error-rate and p95/p99 starting thresholds plus a staged,
+  repeatable measurement guide for controlled environments
 
 ## [1.2.0] - 2026-08-09
 

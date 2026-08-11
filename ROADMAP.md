@@ -59,7 +59,7 @@ Status: in progress
 - Transactional outbox and background worker processing (completed)
 - Safe OIDC discovery/JWKS caching and invalidation guidance (completed)
 - Async database evaluation and performance benchmarks (completed; sync retained)
-- Load-testing examples
+- Load-testing examples (completed)
 - OpenTelemetry tracing example (completed)
 
 ## v2.0 — Deployment patterns at scale
