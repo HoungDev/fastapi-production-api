@@ -84,6 +84,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "-ra --cov --cov-report=term-missing --cov-fail-under=90"
 
 [tool.coverage.run]
