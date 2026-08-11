@@ -78,6 +78,7 @@ contributor workflows, and local troubleshooting.
 | [API examples](API_EXAMPLES.md) | Register, authenticate, rotate tokens, call admin routes, and inspect operations endpoints |
 | [Architecture](ARCHITECTURE.md) | Understand module boundaries, request flow, authentication, transactions, and extension points |
 | [Database benchmarks](DATABASE_BENCHMARKS.md) | Reproduce sync/async PostgreSQL comparisons and understand the v1.3 architecture decision |
+| [Load testing](LOAD_TESTING.md) | Exercise health and authenticated HTTP lifecycles with bounded k6 workloads and explicit thresholds |
 | [Local development](DEVELOPMENT.md) | Set up a checkout, run common commands, contribute, or troubleshoot locally |
 | [Deployment](DEPLOYMENT.md) | Configure a production host, release safely, terminate TLS, and operate the service |
 | [Monitoring](MONITORING.md) | Configure probes, Prometheus, multi-worker metrics, alerts, logs, and incident diagnosis |
@@ -250,6 +251,10 @@ and async database benchmark and uploads its machine-readable JSON artifact.
 See [DATABASE_BENCHMARKS.md](DATABASE_BENCHMARKS.md); shared-runner timings are
 not used as performance gates.
 
+End-to-end k6 examples cover a health baseline and an authenticated lifecycle
+with isolated per-VU refresh rotation. See [LOAD_TESTING.md](LOAD_TESTING.md)
+for safety guards, starting thresholds, and a staged workload methodology.
+
 CI runs against PostgreSQL 17 rather than silently substituting SQLite. It also
 verifies that the built wheel contains and can import the application.
 
@@ -314,3 +319,4 @@ If this foundation saves you time:
 
 Distributed under the [MIT License](LICENSE). Maintained by
 [@HoungDev](https://github.com/HoungDev).
+
