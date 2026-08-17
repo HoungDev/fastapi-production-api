@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM ghcr.io/astral-sh/uv:0.12.0 AS uv
+FROM ghcr.io/astral-sh/uv:0.12.4 AS uv
 
 FROM python:3.13-slim-trixie AS builder
 
