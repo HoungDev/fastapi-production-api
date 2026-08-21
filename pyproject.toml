@@ -27,7 +27,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 dependencies = [
-    "alembic>=1.18.5",
+    "alembic>=1.19.0",
     "bcrypt==4.3.0",
     "cryptography>=50.0.0,<51",
     "email-validator>=2.3.0",
